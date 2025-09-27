@@ -60,13 +60,14 @@ class ReleaseRepo(interface.IReleaseRepo):
                 update_fields = []
                 args: dict = {'release_id': release_id}
 
-                if not update_fields:
-                    span.set_status(Status(StatusCode.OK))
-                    return
 
                 if status is not None:
                     update_fields.append("status = :status")
                     args['status'] = status
+
+                if not update_fields:
+                    span.set_status(Status(StatusCode.OK))
+                    return
 
                 query = f"""
                 UPDATE releases 

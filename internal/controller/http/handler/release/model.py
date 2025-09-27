@@ -13,5 +13,5 @@ class CreateReleaseBody(BaseModel):
     github_ref: str
 
 class UpdateReleaseBody(BaseModel):
-    release_id: str
+    release_id: int
     status: model.ReleaseStatus

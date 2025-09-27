@@ -7,6 +7,7 @@ def NewServer(
         db: interface.IDB,
         http_middleware: interface.IHttpMiddleware,
         tg_webhook_controller: interface.ITelegramWebhookController,
+        release_controller: interface.IReleaseController,
         prefix: str
 ):
     app = FastAPI(
@@ -18,6 +19,7 @@ def NewServer(
 
     include_db_handler(app, db, prefix)
     include_tg_webhook(app, tg_webhook_controller, prefix)
+    include_release_handlers(app, release_controller, prefix)
 
     return app
 
@@ -45,6 +47,29 @@ def include_tg_webhook(
         prefix + "/webhook/set",
         tg_webhook_controller.bot_set_webhook,
         methods=["POST"]
+    )
+
+
+def include_release_handlers(
+        app: FastAPI,
+        release_controller: interface.IReleaseController,
+        prefix: str
+):
+    app.add_api_route(
+        prefix + "/release",
+        release_controller.create_release,
+        methods=["POST"],
+        summary="Создать новый релиз",
+        description="Создает новый релиз для указанного сервиса"
+    )
+
+    # Обновление статуса релиза
+    app.add_api_route(
+        prefix + "/release",
+        release_controller.update_release,
+        methods=["PATCH"],
+        summary="Обновить статус релиза",
+        description="Обновляет статус существующего релиза"
     )
 
 
