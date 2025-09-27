@@ -63,7 +63,7 @@ class ReleaseRepo(interface.IReleaseRepo):
 
                 if status is not None:
                     update_fields.append("status = :status")
-                    args['status'] = status
+                    args['status'] = status.value
 
                 if not update_fields:
                     span.set_status(Status(StatusCode.OK))
