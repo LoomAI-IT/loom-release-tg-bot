@@ -12,7 +12,7 @@ class ActiveReleaseService(interface.IActiveReleaseService):
             self,
             tel: interface.ITelemetry,
             release_service: interface.IReleaseService,
-            github_client: interface.IGutHubClient
+            github_client: interface.IGitHubClient
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
