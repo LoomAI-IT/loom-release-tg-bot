@@ -45,5 +45,5 @@ WHERE status IN (
     'manual_test_failed',
     'production_failed'
 )
-ORDER created_at DESC;
+ORDER BY created_at DESC;
 """
