@@ -1,8 +1,7 @@
-from aiogram import F
+
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.text import Const, Format, Case, Multi
-from aiogram_dialog.widgets.kbd import Button, Column, Row, Group, Back, Cancel
-from aiogram_dialog.widgets.kbd import NumberedPager, StubScroll
+from aiogram_dialog.widgets.kbd import Button, Column, Row
 from sulguk import SULGUK_PARSE_MODE
 
 from internal import interface, model
@@ -29,67 +28,93 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
 
     def get_view_releases_window(self) -> Window:
         return Window(
-            Const("<b>🚀 Активные релизы</b><br>"),
-            Case(
-                {
-                    True: Multi(
-                        Const("━━━━━━━━━━━━━━━━━━━━━<br>"),
-                        Format("<b>Сервис:</b> {current_release[service_name]}<br>"),
-                        Format("<b>Версия:</b> {current_release[release_version]}<br>"),
-                        Format("<b>Статус:</b> {current_release[status_text]}<br>"),
-                        Format("<b>Инициатор:</b> {current_release[initiated_by]}<br>"),
-                        Format("<b>Создан:</b> {current_release[created_at_formatted]}<br>"),
-                        Case(
-                            {
-                                True: Format("<b>GitHub Action:</b> <a href='{current_release[github_action_link]}'>Открыть</a><br>"),
-                                False: Const(""),
-                            },
-                            selector=F["current_release"]["github_action_link"]
+            Multi(
+                Const("🚀 <b>Активные релизы</b><br><br>"),
+                Case(
+                    {
+                        True: Multi(
+                            Format("📦 <b>{service_name}</b><br>"),
+                            Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                            Format("🔄 <b>Статус:</b> {status_text}<br>"),
+                            Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
+                            Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),
+                            Case(
+                                {
+                                    True: Format("🔗 <b>GitHub Action:</b> <a href='{github_action_link}'>Открыть</a><br>"),
+                                    False: Const(""),
+                                },
+                                selector="has_github_link"
+                            ),
+                            Case(
+                                {
+                                    True: Format("⏱️ <b>В обработке:</b> <i>{waiting_time}</i><br>"),
+                                    False: Const(""),
+                                },
+                                selector="has_waiting_time"
+                            ),
+                            Const("<br>━━━━━━━━━━━━━━━━━━━━━"),
                         ),
-                        Const("━━━━━━━━━━━━━━━━━━━━━"),
-                    ),
-                    False: Const("📭 Нет активных релизов"),
-                },
-                selector="has_releases"
-            ),
-            # Навигация по релизам
-            Group(
-                NumberedPager(
-                    scroll="release_scroll",
-                    when="has_releases"
+                        False: Multi(
+                            Const("📭 <b>Нет активных релизов</b><br><br>"),
+                            Const("💡 <i>Все релизы завершены или ещё не инициированы</i>"),
+                        ),
+                    },
+                    selector="has_releases"
                 ),
-                width=5,
+                sep="",
             ),
-            StubScroll(
-                id="release_scroll",
-                pages="total_pages"
+
+            # Навигация по релизам
+            Row(
+                Button(
+                    Const("⬅️ Пред"),
+                    id="prev_release",
+                    on_click=self.active_release_service.handle_navigate_release,
+                    when="has_prev",
+                ),
+                Button(
+                    Format("📊 {current_index}/{total_count}"),
+                    id="counter",
+                    on_click=lambda c, b, d: c.answer("📈 Навигация по релизам"),
+                    when="has_releases",
+                ),
+                Button(
+                    Const("➡️ След"),
+                    id="next_release",
+                    on_click=self.active_release_service.handle_navigate_release,
+                    when="has_next",
+                ),
+                when="has_releases",
             ),
+
             Column(
                 Row(
                     Button(
                         Const("✅ Подтвердить"),
                         id="confirm_release",
-                        on_click=self.active_release_service.handle_confirm_release,
-                        when=F["show_manual_testing_buttons"]
+                        on_click=lambda c, b, d: d.switch_to(model.ActiveReleaseStates.confirm_dialog),
+                        when="show_manual_testing_buttons"
                     ),
                     Button(
                         Const("❌ Отклонить"),
                         id="reject_release",
-                        on_click=self.active_release_service.handle_reject_release,
-                        when=F["show_manual_testing_buttons"]
+                        on_click=lambda c, b, d: d.switch_to(model.ActiveReleaseStates.reject_dialog),
+                        when="show_manual_testing_buttons"
                     ),
                 ),
                 Button(
                     Const("🔄 Обновить"),
                     id="refresh",
                     on_click=self.active_release_service.handle_refresh,
+                    when="has_releases",
                 ),
                 Button(
                     Const("⬅️ Назад в меню"),
-                    id="refresh",
-                    on_click=lambda c, b, d: d.start(model.MainMenuStates.main_menu),
+                    id="back_to_menu",
+                    on_click=self.active_release_service.handle_back_to_menu,
                 ),
             ),
+
             state=model.ActiveReleaseStates.view_releases,
             getter=self.active_release_getter.get_releases_data,
             parse_mode=SULGUK_PARSE_MODE,
@@ -97,18 +122,25 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
 
     def get_confirm_dialog_window(self) -> Window:
         return Window(
-            Const("<b>✅ Подтверждение релиза</b><br><br>"),
-            Format("Вы уверены, что хотите подтвердить релиз?<br><br>"),
-            Format("<b>Сервис:</b> {release_to_confirm[service_name]}<br>"),
-            Format("<b>Версия:</b> {release_to_confirm[release_version]}<br>"),
+            Multi(
+                Const("✅ <b>Подтверждение релиза</b><br><br>"),
+                Format("Вы уверены, что хотите подтвердить релиз?<br><br>"),
+                Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br><br>"),
+                Const("⚠️ <i>После подтверждения релиз будет отмечен как успешно протестированный</i>"),
+                sep="",
+            ),
             Row(
                 Button(
                     Const("✅ Да, подтвердить"),
                     id="confirm_yes",
                     on_click=self.active_release_service.handle_confirm_yes,
                 ),
-                Back(
+                Button(
                     Const("❌ Отмена"),
+                    id="cancel_confirm",
+                    on_click=lambda c, b, d: d.switch_to(model.ActiveReleaseStates.view_releases),
                 ),
             ),
             state=model.ActiveReleaseStates.confirm_dialog,
@@ -118,18 +150,25 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
 
     def get_reject_dialog_window(self) -> Window:
         return Window(
-            Const("<b>❌ Отклонение релиза</b><br><br>"),
-            Format("Вы уверены, что хотите отклонить релиз?<br><br>"),
-            Format("<b>Сервис:</b> {release_to_reject[service_name]}<br>"),
-            Format("<b>Версия:</b> {release_to_reject[release_version]}<br>"),
+            Multi(
+                Const("❌ <b>Отклонение релиза</b><br><br>"),
+                Format("Вы уверены, что хотите отклонить релиз?<br><br>"),
+                Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br><br>"),
+                Const("⚠️ <i>После отклонения релиз будет отмечен как неуспешный</i>"),
+                sep="",
+            ),
             Row(
                 Button(
                     Const("❌ Да, отклонить"),
                     id="reject_yes",
                     on_click=self.active_release_service.handle_reject_yes,
                 ),
-                Back(
+                Button(
                     Const("✅ Отмена"),
+                    id="cancel_reject",
+                    on_click=lambda c, b, d: d.switch_to(model.ActiveReleaseStates.view_releases),
                 ),
             ),
             state=model.ActiveReleaseStates.reject_dialog,

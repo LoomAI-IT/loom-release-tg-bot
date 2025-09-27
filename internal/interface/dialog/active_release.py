@@ -32,23 +32,19 @@ class IActiveReleaseService(Protocol):
     ) -> None:
         pass
 
-    @abstractmethod
-    async def handle_confirm_release(
+    async def handle_navigate_release(
             self,
             callback: CallbackQuery,
             button: Any,
             dialog_manager: DialogManager
-    ) -> None:
-        pass
+    ) -> None: pass
 
-    @abstractmethod
-    async def handle_reject_release(
+    async def handle_back_to_menu(
             self,
             callback: CallbackQuery,
             button: Any,
             dialog_manager: DialogManager
-    ) -> None:
-        pass
+    ) -> None: pass
 
     @abstractmethod
     async def handle_confirm_yes(

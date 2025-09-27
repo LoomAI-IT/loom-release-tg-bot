@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from aiogram_dialog import DialogManager
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
@@ -28,35 +28,87 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 # Получаем активные релизы
                 releases = await self.release_repo.get_active_release()
 
-                # Текущая страница
-                current_page = dialog_manager.dialog_data.get("current_page", 0)
-
-                data: dict = {
-                    "has_releases": len(releases) > 0,
-                    "total_pages": len(releases) if releases else 1,
-                    "show_manual_testing_buttons": False,
-                }
-
-                if releases and current_page < len(releases):
-                    current_release = releases[current_page]
-
-                    # Форматируем данные релиза
-                    release_data = {
-                        "service_name": current_release.service_name,
-                        "release_version": current_release.release_version,
-                        "status_text": self._format_status(current_release.status),
-                        "initiated_by": current_release.initiated_by,
-                        "created_at_formatted": self._format_datetime(current_release.created_at),
-                        "github_action_link": current_release.github_action_link,
+                if not releases:
+                    return {
+                        "has_releases": False,
+                        "total_count": 0,
+                        "period_text": "",
                     }
 
-                    data["current_release"] = release_data
+                # Сохраняем список для навигации
+                releases_list = []
+                for release in releases:
+                    if hasattr(release, 'to_dict'):
+                        releases_list.append(release.to_dict())
+                    else:
+                        # Если нет метода to_dict, создаем словарь вручную
+                        releases_list.append({
+                            "id": release.id,
+                            "service_name": release.service_name,
+                            "release_version": release.release_version,
+                            "status": release.status,
+                            "initiated_by": release.initiated_by,
+                            "created_at": release.created_at,
+                            "github_action_link": release.github_action_link,
+                        })
 
-                    # Показываем кнопки только для релизов в статусе manual_testing
-                    if current_release.status == model.ReleaseStatus.MANUAL_TESTING:
-                        data["show_manual_testing_buttons"] = True
-                        dialog_manager.dialog_data["current_release_id"] = current_release.id
-                        dialog_manager.dialog_data["current_release"] = release_data
+                dialog_manager.dialog_data["releases_list"] = releases_list
+
+                # Устанавливаем текущий индекс (0 если не был установлен)
+                if "current_index" not in dialog_manager.dialog_data:
+                    dialog_manager.dialog_data["current_index"] = 0
+
+                current_index = dialog_manager.dialog_data["current_index"]
+
+                # Корректируем индекс если он выходит за границы
+                if current_index >= len(releases):
+                    current_index = len(releases) - 1
+                    dialog_manager.dialog_data["current_index"] = current_index
+
+                current_release = releases[current_index]
+
+                # Рассчитываем время ожидания
+                waiting_time = self._calculate_waiting_time(current_release.created_at)
+
+                # Определяем период
+                period_text = self._get_period_text(releases)
+
+                # Форматируем данные релиза
+                release_data = {
+                    "service_name": current_release.service_name,
+                    "release_version": current_release.release_version,
+                    "status_text": self._format_status(current_release.status),
+                    "initiated_by": current_release.initiated_by,
+                    "created_at_formatted": self._format_datetime(current_release.created_at),
+                    "has_github_link": bool(current_release.github_action_link),
+                    "github_action_link": current_release.github_action_link,
+                    "waiting_time": waiting_time,
+                    "has_waiting_time": bool(waiting_time),
+                }
+
+                data = {
+                    "has_releases": True,
+                    "total_count": len(releases),
+                    "period_text": period_text,
+                    "current_index": current_index + 1,
+                    "has_prev": current_index > 0,
+                    "has_next": current_index < len(releases) - 1,
+                    "show_manual_testing_buttons": current_release.status == model.ReleaseStatus.MANUAL_TESTING,
+                    **release_data,
+                }
+
+                # Сохраняем данные текущего релиза для диалогов подтверждения/отклонения
+                dialog_manager.dialog_data["current_release"] = {
+                    "id": current_release.id,
+                    "service_name": current_release.service_name,
+                    "release_version": current_release.release_version,
+                    "initiated_by": current_release.initiated_by,
+                    "status": current_release.status,
+                    "created_at": current_release.created_at,
+                    "github_action_link": current_release.github_action_link,
+                }
+
+                self.logger.info("Список активных релизов загружен")
 
                 span.set_status(Status(StatusCode.OK))
                 return data
@@ -76,8 +128,12 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
+                current_release = dialog_manager.dialog_data.get("current_release", {})
+
                 data = {
-                    "release_to_confirm": dialog_manager.dialog_data.get("current_release", {})
+                    "service_name": current_release.get("service_name", "Неизвестно"),
+                    "release_version": current_release.get("release_version", "Неизвестно"),
+                    "initiated_by": current_release.get("initiated_by", "Неизвестно"),
                 }
 
                 span.set_status(Status(StatusCode.OK))
@@ -98,8 +154,12 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
+                current_release = dialog_manager.dialog_data.get("current_release", {})
+
                 data = {
-                    "release_to_reject": dialog_manager.dialog_data.get("current_release", {})
+                    "service_name": current_release.get("service_name", "Неизвестно"),
+                    "release_version": current_release.get("release_version", "Неизвестно"),
+                    "initiated_by": current_release.get("initiated_by", "Неизвестно"),
                 }
 
                 span.set_status(Status(StatusCode.OK))
@@ -111,6 +171,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 raise err
 
     def _format_status(self, status: model.ReleaseStatus) -> str:
+        """Форматирует статус релиза с эмодзи"""
         status_map = {
             model.ReleaseStatus.INITIATED: "🔵 Инициирован",
             model.ReleaseStatus.BUILDING: "🔨 Сборка",
@@ -123,9 +184,118 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
             model.ReleaseStatus.ROLLBACK: "⏪ Откат",
             model.ReleaseStatus.CANCELLED: "🚫 Отменен",
         }
-        return status_map.get(status, status.value)
+        return status_map.get(status, status.value if hasattr(status, 'value') else str(status))
 
     def _format_datetime(self, dt: datetime) -> str:
-        if dt:
+        """Форматирует дату и время"""
+        if not dt:
+            return "—"
+
+        try:
+            if isinstance(dt, str):
+                dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+
             return dt.strftime("%d.%m.%Y %H:%M")
-        return "—"
+        except Exception:
+            return str(dt)
+
+    def _calculate_waiting_time(self, created_at: datetime) -> str:
+        """Вычисляет время ожидания релиза"""
+        if not created_at:
+            return ""
+
+        try:
+            if isinstance(created_at, str):
+                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+
+            now = datetime.now(timezone.utc)
+
+            # Убеждаемся что datetime имеет timezone info
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+
+            delta = now - created_at
+            total_seconds = delta.total_seconds()
+
+            if total_seconds < 60:
+                return "только что"
+
+            minutes = int(total_seconds / 60)
+            if minutes < 60:
+                return f"{minutes} мин"
+
+            hours = int(total_seconds / 3600)
+            if hours < 24:
+                if hours == 1:
+                    return "1 час"
+                elif hours < 5:
+                    return f"{hours} часа"
+                else:
+                    return f"{hours} часов"
+
+            days = int(total_seconds / (3600 * 24))
+            if days == 1:
+                return "1 день"
+            elif days < 5:
+                return f"{days} дня"
+            else:
+                return f"{days} дней"
+
+        except Exception:
+            return ""
+
+    def _get_period_text(self, releases: list) -> str:
+        """Определяет период активных релизов"""
+        if not releases:
+            return "Нет данных"
+
+        # Находим самый старый релиз
+        oldest_date = None
+        for release in releases:
+            if hasattr(release, 'created_at') and release.created_at:
+                if oldest_date is None or release.created_at < oldest_date:
+                    oldest_date = release.created_at
+
+        if not oldest_date:
+            return "Сегодня"
+
+        try:
+            if isinstance(oldest_date, str):
+                oldest_date = datetime.fromisoformat(oldest_date.replace('Z', '+00:00'))
+
+            now = datetime.now(timezone.utc)
+            if oldest_date.tzinfo is None:
+                oldest_date = oldest_date.replace(tzinfo=timezone.utc)
+
+            delta = now - oldest_date
+            hours = delta.total_seconds() / 3600
+
+            if hours < 24:
+                return "За сегодня"
+            elif hours < 48:
+                return "За последние 2 дня"
+            elif hours < 168:  # неделя
+                return "За неделю"
+            else:
+                return "За месяц"
+
+        except Exception:
+            return "За последнее время"
+
+    def _calculate_waiting_hours(self, created_at: datetime) -> int:
+        """Вычисляет количество часов ожидания"""
+        if not created_at:
+            return 0
+
+        try:
+            if isinstance(created_at, str):
+                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
+
+            now = datetime.now(timezone.utc)
+            if created_at.tzinfo is None:
+                created_at = created_at.replace(tzinfo=timezone.utc)
+
+            delta = now - created_at
+            return int(delta.total_seconds() / 3600)
+        except Exception:
+            return 0
