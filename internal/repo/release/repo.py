@@ -28,7 +28,7 @@ class ReleaseRepo(interface.IReleaseRepo):
                 args = {
                     "service_name": service_name,
                     "release_version": release_version,
-                    "status": status,
+                    "status": status.value,
                     "initiated_by": initiated_by,
                     "github_run_id": github_run_id,
                     "github_action_link": github_action_link,

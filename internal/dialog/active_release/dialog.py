@@ -84,8 +84,10 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                     id="refresh",
                     on_click=self.active_release_service.handle_refresh,
                 ),
-                Cancel(
+                Button(
                     Const("⬅️ Назад в меню"),
+                    id="refresh",
+                    on_click=lambda c, b, d: d.start(model.MainMenuStates.main_menu),
                 ),
             ),
             state=model.ActiveReleaseStates.view_releases,
