@@ -36,3 +36,14 @@ SELECT * FROM releases
 WHERE status = 'deployed'
 ORDER BY completed_at DESC;
 """
+
+get_failed_releases = """
+SELECT * FROM releases
+WHERE status IN (
+    'failed',
+    'manual_test_failed',
+    'rollback',
+    'cancelled'
+)
+ORDER BY completed_at DESC, created_at DESC;
+"""

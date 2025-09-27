@@ -41,6 +41,11 @@ class MainMenuDialog(interface.IMainMenuDialog):
                     id="successful_releases",
                     on_click=self.main_menu_service.handle_go_to_successful_releases,
                 ),
+                Button(
+                    Const("❌ Провальные релизы"),
+                    id="failed_releases",
+                    on_click=self.main_menu_service.handle_go_to_failed_releases,
+                ),
             ),
             state=model.MainMenuStates.main_menu,
             getter=self.main_menu_getter.get_main_menu_data,

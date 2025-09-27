@@ -11,6 +11,7 @@ def NewTg(
         main_menu_dialog: interface.IMainMenuDialog,
         active_release_dialog: interface.IActiveReleaseDialog,
         successful_releases_dialog: interface.ISuccessfulReleasesDialog,
+        failed_releases_dialog: interface.IFailedReleasesDialog,
 ) -> BgManagerFactory:
     include_command_handlers(
         dp,
@@ -20,7 +21,8 @@ def NewTg(
         dp,
         main_menu_dialog,
         active_release_dialog,
-        successful_releases_dialog
+        successful_releases_dialog,
+        failed_releases_dialog
     )
 
     return dialog_bg_factory
@@ -50,12 +52,14 @@ def include_dialogs(
         main_menu_dialog: interface.IMainMenuDialog,
         active_release_dialog: interface.IActiveReleaseDialog,
         successful_releases_dialog: interface.ISuccessfulReleasesDialog,
+        failed_releases_dialog: interface.IFailedReleasesDialog,
 ) -> BgManagerFactory:
     dialog_router = Router()
     dialog_router.include_routers(
         main_menu_dialog.get_dialog(),
         active_release_dialog.get_dialog(),
-        successful_releases_dialog.get_dialog()
+        successful_releases_dialog.get_dialog(),
+        failed_releases_dialog.get_dialog()
     )
 
     dp.include_routers(dialog_router)

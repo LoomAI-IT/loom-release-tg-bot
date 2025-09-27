@@ -125,3 +125,20 @@ class ReleaseRepo(interface.IReleaseRepo):
                 span.record_exception(err)
                 span.set_status(StatusCode.ERROR, str(err))
                 raise
+
+    async def get_failed_releases(self) -> list[model.Release]:
+        with self.tracer.start_as_current_span(
+                "ReleaseRepo.get_failed_releases",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                rows = await self.db.select(get_failed_releases, {})
+                if rows:
+                    rows = model.Release.serialize(rows)
+                span.set_status(StatusCode.OK)
+                return rows
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(StatusCode.ERROR, str(err))
+                raise

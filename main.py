@@ -19,15 +19,18 @@ from internal.controller.http.handler.release.handler import ReleaseController
 from internal.dialog.main_menu.dialog import MainMenuDialog
 from internal.dialog.active_release.dialog import ActiveReleaseDialog
 from internal.dialog.success_release.dialog import SuccessfulReleasesDialog
+from internal.dialog.failed_release.dialog import FailedReleasesDialog
 
 from internal.service.release.service import ReleaseService
 from internal.dialog.main_menu.service import MainMenuService
 from internal.dialog.active_release.service import ActiveReleaseService
 from internal.dialog.success_release.service import SuccessfulReleasesService
+from internal.dialog.failed_release.service import FailedReleasesService
 
 from internal.dialog.main_menu.getter import MainMenuGetter
 from internal.dialog.active_release.getter import ActiveReleaseGetter
 from internal.dialog.success_release.getter import SuccessfulReleasesGetter
+from internal.dialog.failed_release.getter import FailedReleasesGetter
 
 from internal.repo.release.repo import ReleaseRepo
 
@@ -101,6 +104,11 @@ successful_releases_getter = SuccessfulReleasesGetter(
     release_repo
 )
 
+failed_releases_getter = FailedReleasesGetter(
+    tel,
+    release_repo
+)
+
 # Инициализация сервисов
 release_service = ReleaseService(tel, release_repo)
 main_menu_service = MainMenuService(
@@ -114,6 +122,10 @@ active_release_service = ActiveReleaseService(
 )
 
 successful_releases_service = SuccessfulReleasesService(
+    tel,
+)
+
+failed_releases_service = FailedReleasesService(
     tel,
 )
 
@@ -135,6 +147,12 @@ successful_releases_dialog = SuccessfulReleasesDialog(
     successful_releases_getter,
 )
 
+failed_releases_dialog = FailedReleasesDialog(
+    tel,
+    failed_releases_service,
+    failed_releases_getter,
+)
+
 command_controller = CommandController(tel)
 
 dialog_bg_factory = NewTg(
@@ -142,7 +160,8 @@ dialog_bg_factory = NewTg(
     command_controller,
     main_menu_dialog,
     active_release_dialog,
-    successful_releases_dialog
+    successful_releases_dialog,
+    failed_releases_dialog
 )
 
 # Инициализация middleware

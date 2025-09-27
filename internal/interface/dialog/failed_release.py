@@ -4,19 +4,19 @@ from aiogram_dialog import DialogManager, Dialog, Window
 from aiogram.types import CallbackQuery
 
 
-class IMainMenuDialog(Protocol):
+class IFailedReleasesDialog(Protocol):
     @abstractmethod
     def get_dialog(self) -> Dialog:
         pass
 
     @abstractmethod
-    def get_main_menu_window(self) -> Window:
+    def get_view_failed_releases_window(self) -> Window:
         pass
 
 
-class IMainMenuService(Protocol):
+class IFailedReleasesService(Protocol):
     @abstractmethod
-    async def handle_go_to_active_releases(
+    async def handle_refresh(
             self,
             callback: CallbackQuery,
             button: Any,
@@ -25,7 +25,7 @@ class IMainMenuService(Protocol):
         pass
 
     @abstractmethod
-    async def handle_go_to_successful_releases(
+    async def handle_navigate_release(
             self,
             callback: CallbackQuery,
             button: Any,
@@ -34,7 +34,7 @@ class IMainMenuService(Protocol):
         pass
 
     @abstractmethod
-    async def handle_go_to_failed_releases(
+    async def handle_back_to_menu(
             self,
             callback: CallbackQuery,
             button: Any,
@@ -43,9 +43,9 @@ class IMainMenuService(Protocol):
         pass
 
 
-class IMainMenuGetter(Protocol):
+class IFailedReleasesGetter(Protocol):
     @abstractmethod
-    async def get_main_menu_data(
+    async def get_releases_data(
             self,
             dialog_manager: DialogManager,
     ) -> dict:
