@@ -30,3 +30,9 @@ WHERE status NOT IN (
 )
 ORDER BY created_at DESC;
 """
+
+get_successful_releases = """
+SELECT * FROM releases
+WHERE status = 'deployed'
+ORDER BY completed_at DESC;
+"""

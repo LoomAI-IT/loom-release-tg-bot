@@ -18,13 +18,16 @@ from internal.controller.http.handler.release.handler import ReleaseController
 
 from internal.dialog.main_menu.dialog import MainMenuDialog
 from internal.dialog.active_release.dialog import ActiveReleaseDialog
+from internal.dialog.success_release.dialog import SuccessfulReleasesDialog
 
 from internal.service.release.service import ReleaseService
 from internal.dialog.main_menu.service import MainMenuService
 from internal.dialog.active_release.service import ActiveReleaseService
+from internal.dialog.success_release.service import SuccessfulReleasesService
 
 from internal.dialog.main_menu.getter import MainMenuGetter
 from internal.dialog.active_release.getter import ActiveReleaseGetter
+from internal.dialog.success_release.getter import SuccessfulReleasesGetter
 
 from internal.repo.release.repo import ReleaseRepo
 
@@ -32,7 +35,6 @@ from internal.app.tg.app import NewTg
 from internal.app.server.app import NewServer
 
 from internal.config.config import Config
-
 
 cfg = Config()
 
@@ -94,6 +96,11 @@ active_release_getter = ActiveReleaseGetter(
     release_repo
 )
 
+successful_releases_getter = SuccessfulReleasesGetter(
+    tel,
+    release_repo
+)
+
 # Инициализация сервисов
 release_service = ReleaseService(tel, release_repo)
 main_menu_service = MainMenuService(
@@ -104,6 +111,10 @@ active_release_service = ActiveReleaseService(
     tel,
     release_service,
     github_client
+)
+
+successful_releases_service = SuccessfulReleasesService(
+    tel,
 )
 
 main_menu_dialog = MainMenuDialog(
@@ -118,13 +129,20 @@ active_release_dialog = ActiveReleaseDialog(
     active_release_getter,
 )
 
+successful_releases_dialog = SuccessfulReleasesDialog(
+    tel,
+    successful_releases_service,
+    successful_releases_getter,
+)
+
 command_controller = CommandController(tel)
 
 dialog_bg_factory = NewTg(
     dp,
     command_controller,
     main_menu_dialog,
-    active_release_dialog
+    active_release_dialog,
+    successful_releases_dialog
 )
 
 # Инициализация middleware
