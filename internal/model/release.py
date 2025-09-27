@@ -6,6 +6,7 @@ from enum import Enum
 class ReleaseStatus(Enum):
     INITIATED = "initiated"
     BUILDING = "building"
+    STAGING_FAILED = "staging_failed"
 
     MANUAL_TESTING = "manual_testing"
     MANUAL_TEST_PASSED = "manual_test_passed"
@@ -13,9 +14,7 @@ class ReleaseStatus(Enum):
 
     DEPLOYING = "deploying"
     DEPLOYED = "deployed"
-    FAILED = "failed"
-    ROLLBACK = "rollback"
-    CANCELLED = "cancelled"
+    PRODUCTION_FAILED = "production_failed"
 
 
 @dataclass

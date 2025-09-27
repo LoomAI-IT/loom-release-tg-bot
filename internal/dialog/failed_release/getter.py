@@ -89,14 +89,13 @@ class FailedReleasesGetter(interface.IFailedReleasesGetter):
         status_map = {
             model.ReleaseStatus.INITIATED: "🔵 Инициирован",
             model.ReleaseStatus.BUILDING: "🔨 Сборка",
+            model.ReleaseStatus.STAGING_FAILED: "❌ Ошибка на stage",
             model.ReleaseStatus.MANUAL_TESTING: "🧪 Ручное тестирование",
             model.ReleaseStatus.MANUAL_TEST_PASSED: "✅ Тест пройден",
-            model.ReleaseStatus.MANUAL_TEST_FAILED: "❌ Тест провален",
+            model.ReleaseStatus.MANUAL_TEST_FAILED: "❌ Отклонен",
             model.ReleaseStatus.DEPLOYING: "🚀 Деплой",
             model.ReleaseStatus.DEPLOYED: "✅ Задеплоен",
-            model.ReleaseStatus.FAILED: "❌ Ошибка",
-            model.ReleaseStatus.ROLLBACK: "⏪ Откат",
-            model.ReleaseStatus.CANCELLED: "🚫 Отменен",
+            model.ReleaseStatus.PRODUCTION_FAILED: "❌ Ошибка на prod",
         }
         return status_map.get(status, status.value if hasattr(status, 'value') else str(status))
 
