@@ -46,7 +46,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                             "id": release.id,
                             "service_name": release.service_name,
                             "release_version": release.release_version,
-                            "status": release.status,
+                            "status": release.status.value,
                             "initiated_by": release.initiated_by,
                             "created_at": release.created_at,
                             "github_action_link": release.github_action_link,
@@ -103,7 +103,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                     "service_name": current_release.service_name,
                     "release_version": current_release.release_version,
                     "initiated_by": current_release.initiated_by,
-                    "status": current_release.status,
+                    "status": current_release.status.value,
                     "created_at": current_release.created_at,
                     "github_action_link": current_release.github_action_link,
                 }
