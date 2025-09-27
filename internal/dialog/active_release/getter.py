@@ -38,19 +38,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 # Сохраняем список для навигации
                 releases_list = []
                 for release in releases:
-                    if hasattr(release, 'to_dict'):
-                        releases_list.append(release.to_dict())
-                    else:
-                        # Если нет метода to_dict, создаем словарь вручную
-                        releases_list.append({
-                            "id": release.id,
-                            "service_name": release.service_name,
-                            "release_version": release.release_version,
-                            "status": release.status.value,
-                            "initiated_by": release.initiated_by,
-                            "created_at": release.created_at,
-                            "github_action_link": release.github_action_link,
-                        })
+                    releases_list.append(release.to_dict())
 
                 dialog_manager.dialog_data["releases_list"] = releases_list
 

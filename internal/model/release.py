@@ -52,3 +52,18 @@ class Release:
             )
             for row in rows
         ]
+
+    def to_dict(self) -> dict:
+        return {
+            'id': self.id,
+            'service_name': self.service_name,
+            'release_version': self.release_version,
+            'status': self.status.value,  # assuming ReleaseStatus is an enum
+            'initiated_by': self.initiated_by,
+            'github_run_id': self.github_run_id,
+            'github_action_link': self.github_action_link,
+            'github_ref': self.github_ref,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'started_at': self.started_at.isoformat() if self.started_at else None,
+            'completed_at': self.completed_at.isoformat() if self.completed_at else None,
+        }
