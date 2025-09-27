@@ -23,9 +23,9 @@ class GitHubClient(interface.IGitHubClient):
         self.tracer = tel.tracer()
         self.token = token
         self._default_headers = {
-            "Accept": "application/vnd.github.v3+json",
-            "Authorization": f"token {token}",
-            "User-Agent": "LoomTgBot/1.0",
+            "Accept": "application/vnd.github+json",
+            "Authorization": f"Bearer {token}",
+            "X-GitHub-Api-Version": "2022-11-28",
         }
 
     async def trigger_workflow(
