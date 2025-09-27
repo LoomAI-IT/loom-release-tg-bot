@@ -1,18 +1,25 @@
-create_state_table = """
-CREATE TABLE IF NOT EXISTS user_states (
+create_release_table = """
+CREATE TABLE IF NOT EXISTS releases (
     id SERIAL PRIMARY KEY,
-    tg_chat_id BIGINT NOT NULL,
-    tg_username TEXT DEFAULT '',
+    service_name TEXT NOT NULL,
+    release_version TEXT NOT NULL,
+    status TEXT NOT NULL,
     
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    initiated_by TEXT NOT NULL,
+    github_run_id TEXT NOT NULL,
+    github_action_link TEXT NOT NULL,
+    github_ref TEXT NOT NULL,
+    
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    completed_at TIMESTAMP NULL,
 );
 """
 
-
-drop_state_table = """
-DROP TABLE IF EXISTS user_states;
+drop_release_table = """
+DROP TABLE IF EXISTS releases;
 """
 
-
-create_queries = [create_state_table]
-drop_queries = [drop_state_table]
+# Обновить существующие списки:
+create_queries = [create_release_table]
+drop_queries = [drop_release_table]

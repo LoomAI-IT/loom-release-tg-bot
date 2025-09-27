@@ -22,7 +22,7 @@ from internal.dialog.main_menu.service import MainMenuService
 
 from internal.dialog.main_menu.getter import MainMenuGetter
 
-from internal.repo.state.repo import StateRepo
+from internal.repo.release.repo import StateRepo
 
 from internal.app.tg.app import NewTg
 from internal.app.server.app import NewServer
