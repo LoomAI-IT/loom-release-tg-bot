@@ -22,11 +22,12 @@ RETURNING id;
 
 get_active_releases = """
 SELECT * FROM releases
-WHERE status NOT IN (
-    'deployed',
-    'failed',
-    'rollback',
-    'cancelled'
+WHERE status IN (
+    'initiated',
+    'building',
+    'manual_testing',
+    'manual_test_passed',
+    'deploying'
 )
 ORDER BY created_at DESC;
 """
@@ -34,16 +35,15 @@ ORDER BY created_at DESC;
 get_successful_releases = """
 SELECT * FROM releases
 WHERE status = 'deployed'
-ORDER BY completed_at DESC;
+ORDER BY created_at DESC;
 """
 
 get_failed_releases = """
 SELECT * FROM releases
 WHERE status IN (
-    'failed',
+    'staging_failed',
     'manual_test_failed',
-    'rollback',
-    'cancelled'
+    'production_failed'
 )
-ORDER BY completed_at DESC, created_at DESC;
+ORDER created_at DESC;
 """
