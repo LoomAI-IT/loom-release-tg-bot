@@ -29,19 +29,19 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
 
     def get_view_releases_window(self) -> Window:
         return Window(
-            Const("<b>🚀 Активные релизы</b>\n"),
+            Const("<b>🚀 Активные релизы</b><br>"),
             Case(
                 {
                     True: Multi(
-                        Const("━━━━━━━━━━━━━━━━━━━━━\n"),
-                        Format("<b>Сервис:</b> {current_release[service_name]}\n"),
-                        Format("<b>Версия:</b> {current_release[release_version]}\n"),
-                        Format("<b>Статус:</b> {current_release[status_text]}\n"),
-                        Format("<b>Инициатор:</b> {current_release[initiated_by]}\n"),
-                        Format("<b>Создан:</b> {current_release[created_at_formatted]}\n"),
+                        Const("━━━━━━━━━━━━━━━━━━━━━<br>"),
+                        Format("<b>Сервис:</b> {current_release[service_name]}<br>"),
+                        Format("<b>Версия:</b> {current_release[release_version]}<br>"),
+                        Format("<b>Статус:</b> {current_release[status_text]}<br>"),
+                        Format("<b>Инициатор:</b> {current_release[initiated_by]}<br>"),
+                        Format("<b>Создан:</b> {current_release[created_at_formatted]}<br>"),
                         Case(
                             {
-                                True: Format("<b>GitHub Action:</b> <a href='{current_release[github_action_link]}'>Открыть</a>\n"),
+                                True: Format("<b>GitHub Action:</b> <a href='{current_release[github_action_link]}'>Открыть</a><br>"),
                                 False: Const(""),
                             },
                             selector=F["current_release"]["github_action_link"]
@@ -95,10 +95,10 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
 
     def get_confirm_dialog_window(self) -> Window:
         return Window(
-            Const("<b>✅ Подтверждение релиза</b>\n\n"),
-            Format("Вы уверены, что хотите подтвердить релиз?\n\n"),
-            Format("<b>Сервис:</b> {release_to_confirm[service_name]}\n"),
-            Format("<b>Версия:</b> {release_to_confirm[release_version]}\n"),
+            Const("<b>✅ Подтверждение релиза</b><br><br>"),
+            Format("Вы уверены, что хотите подтвердить релиз?<br><br>"),
+            Format("<b>Сервис:</b> {release_to_confirm[service_name]}<br>"),
+            Format("<b>Версия:</b> {release_to_confirm[release_version]}<br>"),
             Row(
                 Button(
                     Const("✅ Да, подтвердить"),
@@ -116,10 +116,10 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
 
     def get_reject_dialog_window(self) -> Window:
         return Window(
-            Const("<b>❌ Отклонение релиза</b>\n\n"),
-            Format("Вы уверены, что хотите отклонить релиз?\n\n"),
-            Format("<b>Сервис:</b> {release_to_reject[service_name]}\n"),
-            Format("<b>Версия:</b> {release_to_reject[release_version]}\n"),
+            Const("<b>❌ Отклонение релиза</b><br><br>"),
+            Format("Вы уверены, что хотите отклонить релиз?<br><br>"),
+            Format("<b>Сервис:</b> {release_to_reject[service_name]}<br>"),
+            Format("<b>Версия:</b> {release_to_reject[release_version]}<br>"),
             Row(
                 Button(
                     Const("❌ Да, отклонить"),
