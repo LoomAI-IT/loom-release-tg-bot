@@ -86,15 +86,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 }
 
                 # Сохраняем данные текущего релиза для диалогов подтверждения/отклонения
-                dialog_manager.dialog_data["current_release"] = {
-                    "id": current_release.id,
-                    "service_name": current_release.service_name,
-                    "release_version": current_release.release_version,
-                    "initiated_by": current_release.initiated_by,
-                    "status": current_release.status.value,
-                    "created_at": current_release.created_at,
-                    "github_action_link": current_release.github_action_link,
-                }
+                dialog_manager.dialog_data["current_release"] = current_release.to_dict()
 
                 self.logger.info("Список активных релизов загружен")
 
