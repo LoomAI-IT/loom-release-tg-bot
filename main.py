@@ -7,6 +7,7 @@ from sulguk import AiogramSulgukMiddleware
 
 from infrastructure.pg.pg import PG
 from infrastructure.telemetry.telemetry import Telemetry, AlertManager
+from pkg.client.external.github.client import GitHubClient
 
 from internal.controller.http.middlerware.middleware import HttpMiddleware
 from internal.controller.tg.middleware.middleware import TgMiddleware
@@ -31,6 +32,7 @@ from internal.app.tg.app import NewTg
 from internal.app.server.app import NewServer
 
 from internal.config.config import Config
+
 
 cfg = Config()
 
@@ -76,6 +78,11 @@ bot.session.middleware(AiogramSulgukMiddleware())
 # Инициализация клиентов
 db = PG(tel, cfg.db_user, cfg.db_pass, cfg.db_host, cfg.db_port, cfg.db_name)
 
+github_client = GitHubClient(
+    tel,
+    cfg.github_token
+)
+
 release_repo = ReleaseRepo(tel, db)
 
 main_menu_getter = MainMenuGetter(
@@ -95,7 +102,8 @@ main_menu_service = MainMenuService(
 
 active_release_service = ActiveReleaseService(
     tel,
-    release_service
+    release_service,
+    github_client
 )
 
 main_menu_dialog = MainMenuDialog(

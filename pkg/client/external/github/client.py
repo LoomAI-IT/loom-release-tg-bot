@@ -53,7 +53,9 @@ class GitHubClient(interface.IGitHubClient):
                 }
 
                 url = f"/repos/{owner}/{repo}/actions/workflows/{workflow_id}/dispatches"
-                await self.client.post(url, json=body, headers=self._default_headers)
+                response = await self.client.post(url, json=body, headers=self._default_headers)
+                json_response = response.json()
+                print(json_response, flush=True)
 
                 span.set_status(Status(StatusCode.OK))
 

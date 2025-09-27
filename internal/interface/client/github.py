@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Protocol
 
 
-class IGutHubClient(Protocol):
+class IGitHubClient(Protocol):
     @abstractmethod
     async def trigger_workflow(
             self,
