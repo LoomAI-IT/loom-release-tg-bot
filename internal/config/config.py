@@ -25,8 +25,8 @@ class Config:
 
         # Настройки телеметрии
         self.alert_tg_bot_token = os.getenv("LOOM_ALERT_TG_BOT_TOKEN", "")
-        self.alert_tg_chat_id = int(os.getenv("LOOM_ALERT_TG_CHAT_ID", "0"))
-        self.alert_tg_chat_thread_id = int(os.getenv("LOOM_ALERT_TG_CHAT_THREAD_ID", "0"))
+        self.alert_tg_chat_id = 5667467611
+        self.alert_tg_chat_thread_id = 0
         self.grafana_url = os.getenv("LOOM_GRAFANA_URL", "")
 
         self.monitoring_redis_host = os.getenv("LOOM_MONITORING_REDIS_CONTAINER_NAME", "localhost")

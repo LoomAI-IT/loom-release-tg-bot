@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS releases (
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    completed_at TIMESTAMP NULL,
+    completed_at TIMESTAMP NULL
 );
 """
 
