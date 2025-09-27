@@ -3,12 +3,10 @@ from typing import Annotated
 
 from aiogram import Bot, Dispatcher
 from aiogram.types import Update
-from aiogram_dialog import BgManagerFactory
 from fastapi import Header
 from opentelemetry.trace import Status, StatusCode, SpanKind
 
 from internal import interface, common
-from .model import *
 
 
 class TelegramWebhookController(interface.ITelegramWebhookController):
@@ -17,23 +15,17 @@ class TelegramWebhookController(interface.ITelegramWebhookController):
             tel: interface.ITelemetry,
             dp: Dispatcher,
             bot: Bot,
-            state_service: interface.IStateService,
-            dialog_bg_factory: BgManagerFactory,
             domain: str,
             prefix: str,
-            interserver_secret_key: str
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
 
         self.dp = dp
         self.bot = bot
-        self.state_service = state_service
-        self.dialog_bg_factory = dialog_bg_factory
 
         self.domain = domain
         self.prefix = prefix
-        self.interserver_secret_key = interserver_secret_key
 
     async def bot_webhook(
             self,
