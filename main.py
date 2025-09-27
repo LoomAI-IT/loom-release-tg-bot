@@ -14,15 +14,16 @@ from internal.controller.tg.middleware.middleware import TgMiddleware
 
 from internal.controller.tg.command.handler import CommandController
 from internal.controller.http.webhook.handler import TelegramWebhookController
+from internal.controller.http.handler.release.handler import ReleaseController
 
 from internal.dialog.main_menu.dialog import MainMenuDialog
 
-from internal.service.state.service import StateService
+from internal.service.release.service import ReleaseService
 from internal.dialog.main_menu.service import MainMenuService
 
 from internal.dialog.main_menu.getter import MainMenuGetter
 
-from internal.repo.release.repo import StateRepo
+from internal.repo.release.repo import ReleaseRepo
 
 from internal.app.tg.app import NewTg
 from internal.app.server.app import NewServer
@@ -73,7 +74,7 @@ bot.session.middleware(AiogramSulgukMiddleware())
 # Инициализация клиентов
 db = PG(tel, cfg.db_user, cfg.db_pass, cfg.db_host, cfg.db_port, cfg.db_name)
 
-state_repo = StateRepo(tel, db)
+release_repo = ReleaseRepo(tel, db)
 
 
 main_menu_getter = MainMenuGetter(
@@ -82,7 +83,7 @@ main_menu_getter = MainMenuGetter(
 )
 
 # Инициализация сервисов
-state_service = StateService(tel, state_repo)
+release_service = ReleaseService(tel, release_repo)
 main_menu_service = MainMenuService(
     tel,
     bot,
@@ -119,17 +120,20 @@ tg_webhook_controller = TelegramWebhookController(
     tel,
     dp,
     bot,
-    state_service,
-    dialog_bg_factory,
     cfg.domain,
     cfg.prefix,
-    cfg.interserver_secret_key
+)
+
+release_controller = ReleaseController(
+    tel,
+    release_service,
 )
 
 if __name__ == "__main__":
     app = NewServer(
         db,
         http_middleware,
+        tg_webhook_controller,
         tg_webhook_controller,
         cfg.prefix,
     )

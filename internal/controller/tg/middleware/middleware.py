@@ -5,17 +5,16 @@ from aiogram import Bot
 from typing import Callable, Any, Awaitable
 from aiogram.types import TelegramObject, Update
 from aiogram.exceptions import TelegramBadRequest
-from aiogram_dialog import StartMode, BgManagerFactory
+from aiogram_dialog import BgManagerFactory
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
-from internal import interface, common, model
+from internal import interface, common
 
 
 class TgMiddleware(interface.ITelegramMiddleware):
     def __init__(
             self,
             tel: interface.ITelemetry,
-            state_service: interface.IStateService,
             bot: Bot,
             dialog_bg_factory: BgManagerFactory,
     ):
@@ -23,7 +22,6 @@ class TgMiddleware(interface.ITelegramMiddleware):
         self.meter = tel.meter()
         self.logger = tel.logger()
 
-        self.state_service = state_service
         self.bot = bot
         self.dialog_bg_factory = dialog_bg_factory
 
@@ -206,10 +204,6 @@ class TgMiddleware(interface.ITelegramMiddleware):
                 raise err
 
     async def _recovery_start_functionality(self, tg_chat_id: int, tg_username: str):
-        """
-        Функция восстановления, повторяющая функционал команды /start
-        Вызывается при критических ошибках для восстановления состояния пользователя
-        """
         with self.tracer.start_as_current_span(
                 "TgMiddleware._recovery_start_functionality",
                 kind=SpanKind.INTERNAL
@@ -219,11 +213,6 @@ class TgMiddleware(interface.ITelegramMiddleware):
                     f"Начинаем восстановление пользователя через функционал /start",
                     {common.TELEGRAM_CHAT_ID_KEY: tg_chat_id}
                 )
-
-
-                user_state = await self.state_service.state_by_id(tg_chat_id)
-                if not user_state:
-                    await self.state_service.create_state(tg_chat_id, tg_username)
 
                 span.set_status(Status(StatusCode.OK))
 
