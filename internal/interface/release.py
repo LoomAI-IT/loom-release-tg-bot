@@ -60,3 +60,6 @@ class IReleaseRepo(Protocol):
             status: model.ReleaseStatus,
     ) -> None:
         pass
+
+    @abstractmethod
+    async def get_active_release(self) -> list[model.Release]: pass

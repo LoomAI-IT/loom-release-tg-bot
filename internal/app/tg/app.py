@@ -9,6 +9,7 @@ def NewTg(
         dp: Dispatcher,
         command_controller: interface.ICommandController,
         main_menu_dialog: interface.IMainMenuDialog,
+        active_release_dialog: interface.IActiveReleaseDialog,
 ) -> BgManagerFactory:
     include_command_handlers(
         dp,
@@ -17,6 +18,7 @@ def NewTg(
     dialog_bg_factory = include_dialogs(
         dp,
         main_menu_dialog,
+        active_release_dialog
     )
 
     return dialog_bg_factory
@@ -44,10 +46,12 @@ def include_command_handlers(
 def include_dialogs(
         dp: Dispatcher,
         main_menu_dialog: interface.IMainMenuDialog,
+        active_release_dialog: interface.IActiveReleaseDialog,
 ) -> BgManagerFactory:
     dialog_router = Router()
     dialog_router.include_routers(
         main_menu_dialog.get_dialog(),
+        active_release_dialog.get_dialog()
     )
 
     dp.include_routers(dialog_router)

@@ -19,3 +19,14 @@ VALUES (
 )
 RETURNING id;
 """
+
+get_active_releases = """
+SELECT * FROM releases
+WHERE status NOT IN (
+    'deployed',
+    'failed',
+    'rollback',
+    'cancelled'
+)
+ORDER BY created_at DESC;
+"""

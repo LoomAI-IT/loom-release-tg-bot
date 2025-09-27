@@ -28,7 +28,6 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
-                # Сбрасываем текущую страницу для обновления данных
                 dialog_manager.dialog_data["current_page"] = 0
                 dialog_manager.show_mode = ShowMode.EDIT
 
@@ -100,6 +99,8 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
+                dialog_manager.show_mode = ShowMode.EDIT
+
                 release_id = dialog_manager.dialog_data.get("current_release_id")
 
                 if not release_id:
@@ -113,14 +114,9 @@ class ActiveReleaseService(interface.IActiveReleaseService):
 
                 await callback.answer("✅ Релиз подтвержден", show_alert=True)
 
-                # Возвращаемся к списку релизов
+                self.logger.info("Релиз подтвержден")
                 await dialog_manager.switch_to(model.ActiveReleaseStates.view_releases)
-                dialog_manager.show_mode = ShowMode.EDIT
 
-                self.logger.info(
-                    f"Релиз {release_id} подтвержден",
-                    {"release_id": release_id}
-                )
                 span.set_status(Status(StatusCode.OK))
 
             except Exception as err:
@@ -140,10 +136,9 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
-                release_id = dialog_manager.dialog_data.get("current_release_id")
+                dialog_manager.show_mode = ShowMode.EDIT
 
-                if not release_id:
-                    raise ValueError("Release ID not found in dialog data")
+                release_id = dialog_manager.dialog_data.get("current_release_id")
 
                 # Обновляем статус релиза
                 await self.release_service.update_release(
@@ -152,19 +147,16 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                 )
 
                 await callback.answer("❌ Релиз отклонен", show_alert=True)
+                self.logger.info("Релиз отклонен")
 
                 # Возвращаемся к списку релизов
                 await dialog_manager.switch_to(model.ActiveReleaseStates.view_releases)
-                dialog_manager.show_mode = ShowMode.EDIT
 
-                self.logger.info(
-                    f"Релиз {release_id} отклонен",
-                    {"release_id": release_id}
-                )
                 span.set_status(Status(StatusCode.OK))
 
             except Exception as err:
                 span.record_exception(err)
                 span.set_status(Status(StatusCode.ERROR, str(err)))
+
                 await callback.answer("❌ Ошибка при отклонении релиза", show_alert=True)
                 raise err

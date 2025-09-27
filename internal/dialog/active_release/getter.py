@@ -26,12 +26,12 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
         ) as span:
             try:
                 # Получаем активные релизы
-                releases = await self.release_repo.get_active_releases()
+                releases = await self.release_repo.get_active_release()
 
                 # Текущая страница
                 current_page = dialog_manager.dialog_data.get("current_page", 0)
 
-                data = {
+                data: dict = {
                     "has_releases": len(releases) > 0,
                     "total_pages": len(releases) if releases else 1,
                     "show_manual_testing_buttons": False,

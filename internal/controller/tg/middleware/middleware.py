@@ -5,7 +5,6 @@ from aiogram import Bot
 from typing import Callable, Any, Awaitable
 from aiogram.types import TelegramObject, Update
 from aiogram.exceptions import TelegramBadRequest
-from aiogram_dialog import BgManagerFactory
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from internal import interface, common
@@ -16,14 +15,12 @@ class TgMiddleware(interface.ITelegramMiddleware):
             self,
             tel: interface.ITelemetry,
             bot: Bot,
-            dialog_bg_factory: BgManagerFactory,
     ):
         self.tracer = tel.tracer()
         self.meter = tel.meter()
         self.logger = tel.logger()
 
         self.bot = bot
-        self.dialog_bg_factory = dialog_bg_factory
 
         self.ok_message_counter = self.meter.create_counter(
             name=common.OK_MESSAGE_TOTAL_METRIC,

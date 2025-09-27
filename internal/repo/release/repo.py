@@ -50,7 +50,7 @@ class ReleaseRepo(interface.IReleaseRepo):
             status: model.ReleaseStatus,
     ) -> None:
         with self.tracer.start_as_current_span(
-                "StateRepo.change_status",
+                "ReleaseRepo.update_release",
                 kind=SpanKind.INTERNAL,
                 attributes={
                     "release_id": release_id,
@@ -77,6 +77,23 @@ class ReleaseRepo(interface.IReleaseRepo):
 
                 await self.db.update(query, args)
                 span.set_status(StatusCode.OK)
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(StatusCode.ERROR, str(err))
+                raise
+
+    async def get_active_release(self) -> list[model.Release]:
+        with self.tracer.start_as_current_span(
+                "ReleaseRepo.get_active_release",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                rows = await self.db.select(get_active_releases, {})
+                if rows:
+                    rows = model.Release.serialize(rows)
+                span.set_status(StatusCode.OK)
+                return rows
 
             except Exception as err:
                 span.record_exception(err)
