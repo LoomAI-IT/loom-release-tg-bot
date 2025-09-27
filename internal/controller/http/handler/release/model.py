@@ -14,4 +14,6 @@ class CreateReleaseBody(BaseModel):
 
 class UpdateReleaseBody(BaseModel):
     release_id: int
-    status: model.ReleaseStatus
+    status: model.ReleaseStatus = None
+    github_run_id: str = None
+    github_action_link: str = None

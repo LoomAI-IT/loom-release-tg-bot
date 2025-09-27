@@ -47,7 +47,9 @@ class ReleaseRepo(interface.IReleaseRepo):
     async def update_release(
             self,
             release_id: int,
-            status: model.ReleaseStatus,
+            status: model.ReleaseStatus = None,
+            github_run_id: str = None,
+            github_action_link: str = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseRepo.update_release",
@@ -60,10 +62,17 @@ class ReleaseRepo(interface.IReleaseRepo):
                 update_fields = []
                 args: dict = {'release_id': release_id}
 
-
                 if status is not None:
                     update_fields.append("status = :status")
                     args['status'] = status.value
+
+                if github_run_id is not None:
+                    update_fields.append("github_run_id = :github_run_id")
+                    args['github_run_id'] = github_run_id
+
+                if github_action_link is not None:
+                    update_fields.append("github_action_link = :github_action_link")
+                    args['github_action_link'] = github_action_link
 
                 if not update_fields:
                     span.set_status(Status(StatusCode.OK))

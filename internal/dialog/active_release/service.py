@@ -12,10 +12,12 @@ class ActiveReleaseService(interface.IActiveReleaseService):
             self,
             tel: interface.ITelemetry,
             release_service: interface.IReleaseService,
+            github_client: interface.IGutHubClient
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.release_service = release_service
+        self.github_client = github_client
 
     async def handle_navigate_release(
             self,
@@ -140,6 +142,16 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                 await self.release_service.update_release(
                     release_id=release_id,
                     status=model.ReleaseStatus.MANUAL_TEST_PASSED
+                )
+
+                await self.github_client.trigger_workflow(
+                    owner="LoomAI-IT",
+                    repo=current_release["service_name"],
+                    workflow_id="on-approve-manual-testing.yaml.yml",
+                    inputs={
+                        "release_id": release_id,
+                        "release_version": current_release["release_version"],
+                    },
                 )
 
                 await callback.answer("✅ Релиз подтвержден", show_alert=True)

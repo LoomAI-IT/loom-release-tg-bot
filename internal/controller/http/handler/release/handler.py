@@ -66,7 +66,9 @@ class ReleaseController(interface.IReleaseController):
 
                 await self.release_service.update_release(
                     release_id=body.release_id,
-                    status=body.status
+                    status=body.status,
+                    github_run_id=body.github_run_id,
+                    github_action_link=body.github_action_link,
                 )
 
                 self.logger.info(f"Статус релиза {body.release_id} успешно обновлен на {body.status.value}")

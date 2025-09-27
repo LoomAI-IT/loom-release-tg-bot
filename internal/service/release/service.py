@@ -63,7 +63,9 @@ class ReleaseService(interface.IReleaseService):
     async def update_release(
             self,
             release_id: int,
-            status: model.ReleaseStatus
+            status: model.ReleaseStatus = None,
+            github_run_id: str = None,
+            github_action_link: str = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseService.update_release",
@@ -76,7 +78,9 @@ class ReleaseService(interface.IReleaseService):
             try:
                 await self.release_repo.update_release(
                     release_id=release_id,
-                    status=status
+                    status=status,
+                    github_run_id=github_run_id,
+                    github_action_link=github_action_link,
                 )
 
                 span.set_status(Status(StatusCode.OK))
