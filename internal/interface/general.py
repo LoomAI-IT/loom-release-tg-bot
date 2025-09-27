@@ -1,14 +1,13 @@
 from abc import abstractmethod
 from typing import Protocol, Sequence, Any, Annotated, Callable, Awaitable
 
-from aiogram.types import TelegramObject, Update, Message, ErrorEvent
+from aiogram.types import TelegramObject, Update, Message
 from aiogram_dialog import DialogManager
 from fastapi import FastAPI, Header
-from fastapi.responses import JSONResponse
+
 from opentelemetry.metrics import Meter
 from opentelemetry.trace import Tracer
 
-from internal.controller.http.webhook.model import *
 
 
 
