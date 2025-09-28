@@ -1,4 +1,3 @@
-
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.text import Const, Format, Case, Multi
 from aiogram_dialog.widgets.kbd import Button, Column, Row
@@ -13,11 +12,13 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
             tel: interface.ITelemetry,
             active_release_service: interface.IActiveReleaseService,
             active_release_getter: interface.IActiveReleaseGetter,
+            required_approvers: list[str] = None,  # Новый параметр для списка обязательных подтверждающих
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.active_release_service = active_release_service
         self.active_release_getter = active_release_getter
+        self.required_approvers = required_approvers or ["@user1", "@user2"]
 
     def get_dialog(self) -> Dialog:
         return Dialog(
@@ -47,6 +48,18 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),
+                            # Новый блок для отображения статуса подтверждений
+                            Case(
+                                {
+                                    True: Multi(
+                                        Const("✅ <b>Подтверждения:</b><br>"),
+                                        Format("{approval_status}<br>"),
+                                        Format("📋 <b>Прогресс:</b> {approval_progress}<br>"),
+                                    ),
+                                    False: Const(""),
+                                },
+                                selector="show_approval_status"
+                            ),
                             Case(
                                 {
                                     True: Format("🔗 <b>GitHub Action:</b> <a href='{github_action_link}'>Открыть</a><br>"),
@@ -135,15 +148,24 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                 Format("Вы уверены, что хотите подтвердить релиз?<br><br>"),
                 Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
                 Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
-                Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br><br>"),
-                Const("⚠️ <i>После подтверждения релиз будет отмечен как успешно протестированный</i>"),
+                Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
+                # Отображение текущего статуса подтверждений
+                Format("✅ <b>Текущие подтверждения:</b><br>{approval_status}<br>"),
+                Format("📋 <b>Прогресс:</b> {approval_progress}<br><br>"),
+                Case(
+                    {
+                        True: Const("⚠️ <i>Ваше подтверждение будет добавлено к релизу</i>"),
+                        False: Const("⚠️ <i>После получения всех подтверждений релиз будет автоматически продолжен</i>"),
+                    },
+                    selector="user_already_approved"
+                ),
                 sep="",
             ),
             Row(
                 Button(
                     Const("✅ Да, подтвердить"),
                     id="confirm_yes",
-                    on_click=self.active_release_service.handle_confirm_yes,
+                    on_click=self.active_release_service.handle_confirm_yes
                 ),
                 Button(
                     Const("❌ Отмена"),
