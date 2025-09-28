@@ -89,3 +89,133 @@ class ReleaseService(interface.IReleaseService):
                 span.record_exception(err)
                 span.set_status(Status(StatusCode.ERROR, str(err)))
                 raise err
+
+    def _generate_rollback_command(self, service_name: str, target_tag: str) -> str:
+        rollback_commands = f"""# Откат сервиса {service_name} на тег {target_tag}
+set -e
+
+# Создаем директорию для логов если её нет
+mkdir -p /var/log/deployments/rollback/{service_name}
+
+# Создаем файл лога с именем тега для отката
+LOG_FILE="/var/log/deployments/rollback/{service_name}/{target_tag}-rollback.log"
+
+# Функция для логирования
+log_message() {{
+    local message="$1"
+    echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" | tee -a "$LOG_FILE"
+}}
+
+log_message "🔄 Начинаем откат сервиса {service_name} на тег {target_tag}"
+
+# 1. Переходим в директорию сервиса
+cd loom/{service_name}
+
+# 2. Сохраняем текущее состояние для проверки
+CURRENT_REF=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD)
+log_message "🔍 Текущее состояние до отката: $CURRENT_REF"
+
+# 3. Обновляем репозиторий и теги
+log_message "📥 Обновляем репозиторий и теги для отката..."
+
+if git tag -l | grep -q "^{target_tag}$"; then
+    log_message "🏷️ Локальный тег {target_tag} уже существует, удаляем для обновления"
+    git tag -d {target_tag} 2>&1 | tee -a "$LOG_FILE"
+fi
+
+log_message "📥 Получаем обновления из удаленного репозитория"
+git fetch origin 2>&1 | tee -a "$LOG_FILE"
+
+log_message "📥 Принудительно обновляем теги"
+git fetch origin --tags --force 2>&1 | tee -a "$LOG_FILE"
+
+# 4. Проверяем наличие целевого тега
+if ! git tag -l | grep -q "^{target_tag}$"; then
+    log_message "❌ Тег {target_tag} не найден в репозитории после обновления!"
+    log_message "📋 Доступные теги:"
+    git tag -l | tail -10 | tee -a "$LOG_FILE"
+    exit 1
+fi
+
+log_message "✅ Тег {target_tag} найден и готов к использованию для отката"
+
+# 5. Переключаемся на целевой тег
+log_message "🔄 Переключаемся на тег {target_tag} для отката..."
+git checkout {target_tag} 2>&1 | tee -a "$LOG_FILE"
+
+# Очищаем старые ветки (кроме main/master)
+log_message "🧹 Очищаем старые ветки"
+git for-each-ref --format='%(refname:short)' refs/heads | grep -v -E "^(main|master)$" | xargs -r git branch -D 2>&1 | tee -a "$LOG_FILE"
+
+# Очищаем удаленные ветки
+log_message "🧹 Очищаем удаленные ветки"
+git remote prune origin 2>&1 | tee -a "$LOG_FILE"
+
+log_message "✅ Переключение на тег {target_tag} для отката завершено"
+
+# 6. Переходим в директорию системы
+cd ../loom-system
+
+# 7. Загружаем переменные окружения
+export $(cat env/.env.app env/.env.db env/.env.monitoring | xargs)
+
+log_message "🔨 Начинаем пересборку контейнера для отката на тег {target_tag}..."
+
+log_message "🔧 Запускаем контейнер с откаченной версией..."
+docker compose -f ./docker-compose/app.yaml up -d --build {service_name} 2>&1 | tee -a "$LOG_FILE"
+
+# Показываем информацию о созданных образах
+log_message "📋 Созданные образы после отката:"
+docker images | grep {service_name} | tee -a "$LOG_FILE"
+
+# 8. Проверяем здоровье сервиса после отката
+check_health() {{
+    # Если есть HTTP endpoint
+    if curl -f -s -o /dev/null -w "%{{http_code}}" http://localhost:8005/api/tg-bot/health | grep -q "200"; then
+        return 0
+    else
+        return 1
+    fi
+}}
+
+MAX_ATTEMPTS=5
+ATTEMPT=1
+SUCCESS=false
+
+log_message "⏳ Ждем запуска сервиса после отката..."
+sleep 15
+
+while [ $ATTEMPT -le $MAX_ATTEMPTS ]; do
+    log_message "🔍 Проверка health после отката (попытка $ATTEMPT из $MAX_ATTEMPTS)..."
+
+    if check_health; then
+        log_message "✅ Health check пройден после отката!"
+        SUCCESS=true
+        break
+    else
+        log_message "⏳ Health check не пройден, ждем..."
+        sleep 20
+    fi
+
+    ATTEMPT=$((ATTEMPT + 1))
+done
+
+if [ "$SUCCESS" = false ]; then
+    log_message "❌ Health check не пройден после $MAX_ATTEMPTS попыток"
+    log_message "📋 Логи контейнера:"
+    docker logs --tail 100 {service_name} 2>&1 | tee -a "$LOG_FILE"
+    exit 1
+fi
+
+log_message "🎉 Откат на тег {target_tag} завершен успешно! Сервис работает!"
+log_message "📊 Сервис: {service_name}"
+log_message "🏷️ Версия: {target_tag}"
+log_message "✅ Статус: Успешно откачен"
+log_message "📁 Лог отката сохранен в: $LOG_FILE"
+
+# Выводим последние строки лога
+echo "📋 Последние строки лога отката:"
+tail -20 "$LOG_FILE" 
+"""
+
+        return rollback_commands
