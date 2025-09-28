@@ -170,8 +170,8 @@ class ReleaseService(interface.IReleaseService):
 
             # Upload the script to the server
             async with conn.start_sftp_client() as sftp:
-                script_io = io.BytesIO(rollback_script.encode('utf-8'))
-                await sftp.putfo(script_io, script_file)
+                async with sftp.open(script_file, 'w') as remote_file:
+                    await remote_file.write(rollback_script)
 
             # Делаем скрипт исполняемым и запускаем в фоне
             command = f"chmod +x {script_file} && nohup bash {script_file} > /dev/null 2>&1 & echo $!"
