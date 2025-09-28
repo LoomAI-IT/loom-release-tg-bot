@@ -178,8 +178,15 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
             if user in approved_user:
                 approved_user.append(user)
 
-        required_approve_list_text = "<br>".join(self.required_approve_list)
-        approved_list_text = "<br>".join(approved_list) if approved_list else "Никто еще не подтвердил"
+        required_approve_list_text = ""
+        for user in self.required_approve_list:
+            required_approve_list_text += f"@{user}<br>"
+
+        approved_list_text = ""
+        for user in approved_list:
+            required_approve_list_text += f"@{user}<br>"
+        if not approved_list_text:
+            approved_list_text = "Никто еще не подтвердил"
 
         is_approved = True if len(approved_list) == len(self.required_approve_list) else False
         is_last_approve = True if len(approved_list) == len(self.required_approve_list) - 1 else False

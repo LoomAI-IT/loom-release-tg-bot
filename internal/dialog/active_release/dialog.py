@@ -64,8 +64,8 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                             Case(
                                 {
                                     False: Multi(
-                                        Const("<b>Необходимые подтверждения:</b><br>"),
-                                        Format("{required_approve_list_text}<br>"),
+                                        Const("<br><b>Необходимые подтверждения:</b><br>"),
+                                        Format("{required_approve_list_text}<br><br>"),
                                         Format("📋 <b>Подтвердили:</b><br>"),
                                         Format("{approved_list_text}<br>"),
                                     ),
@@ -149,10 +149,10 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                 Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                 Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
 
-                Const("<b>Необходимые подтверждения:</b><br>"),
-                Format("{required_approve_list_text}<br>"),
+                Const("<br><b>Необходимые подтверждения:</b><br>"),
+                Format("{required_approve_list_text}<br><br>"),
                 Format("📋 <b>Подтвердили:</b><br>"),
-                Format("📋 {approved_list}<br>"),
+                Format("{approved_list_text}<br>"),
 
                 Case(
                     {
