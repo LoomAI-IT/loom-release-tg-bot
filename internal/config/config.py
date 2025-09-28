@@ -14,6 +14,17 @@ class Config:
         self.release_tg_bot_token: str = os.environ.get('LOOM_RELEASE_TG_BOT_TOKEN')
         self.domain: str = os.environ.get("LOOM_DOMAIN")
         self.github_token: str = os.environ.get("LOOM_GITHUB_TOKEN")
+        self.prod_host: str = os.environ.get("PROD_HOST")
+        self.prod_password: str = os.environ.get("PROD_PASSWORD")
+
+        self.service_port_map = {
+            os.getenv("LOOM_TG_BOT_CONTAINER_NAME"): int(os.getenv("LOOM_TG_BOT_PORT")),
+            os.getenv("LOOM_ACCOUNT_CONTAINER_NAME"): int(os.getenv("LOOM_ACCOUNT_PORT")),
+            os.getenv("LOOM_AUTHORIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_AUTHORIZATION_PORT")),
+            os.getenv("LOOM_EMPLOYEE_CONTAINER_NAME"): int(os.getenv("LOOM_EMPLOYEE_PORT")),
+            os.getenv("LOOM_ORGANIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_ORGANIZATION_PORT")),
+            os.getenv("LOOM_CONTENT_CONTAINER_NAME"): int(os.getenv("LOOM_CONTENT_PORT")),
+        }
 
         self.interserver_secret_key = os.getenv("LOOM_INTERSERVER_SECRET_KEY")
 

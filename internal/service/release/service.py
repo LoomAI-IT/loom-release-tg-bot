@@ -1,3 +1,6 @@
+import time
+
+import asyncssh
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from internal import interface, model
@@ -7,11 +10,17 @@ class ReleaseService(interface.IReleaseService):
     def __init__(
             self,
             tel: interface.ITelemetry,
-            release_repo: interface.IReleaseRepo
+            release_repo: interface.IReleaseRepo,
+            prod_host: str,
+            prod_password: str,
+            service_port_map: dict[str, int]
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.release_repo = release_repo
+        self.prod_host = prod_host
+        self.prod_password = prod_password
+        self.service_port_map = service_port_map
 
     async def create_release(
             self,
@@ -90,7 +99,38 @@ class ReleaseService(interface.IReleaseService):
                 span.set_status(Status(StatusCode.ERROR, str(err)))
                 raise err
 
+    async def rollback_to_tag(
+            self,
+            service_name: str,
+            target_tag: str,
+    ):
+        async with asyncssh.connect(
+                host=self.prod_host,
+                username="root",
+                password=self.prod_password,
+                connect_timeout=30
+        ) as conn:
+            timestamp = int(time.time())
+            script_file = f"/tmp/rollback_{service_name}_{target_tag}_{timestamp}.sh"
+
+            rollback_script = self._generate_rollback_command(
+                service_name=service_name,
+                target_tag=target_tag,
+            )
+
+            # Асинхронно записываем скрипт на сервер
+            async with conn.start_sftp_client() as sftp:
+                await sftp.put(rollback_script.encode(), script_file)
+
+            # Делаем скрипт исполняемым и запускаем в фоне
+            command = f"chmod +x {script_file} && nohup bash {script_file} > /dev/null 2>&1 & echo $!"
+
+            await conn.run(command, check=False)
+
     def _generate_rollback_command(self, service_name: str, target_tag: str) -> str:
+        prefix = f"/api/{service_name.replace("loom-", "")}"
+        port = self.service_port_map[service_name]
+
         rollback_commands = f"""# Откат сервиса {service_name} на тег {target_tag}
 set -e
 
@@ -171,7 +211,7 @@ docker images | grep {service_name} | tee -a "$LOG_FILE"
 # 8. Проверяем здоровье сервиса после отката
 check_health() {{
     # Если есть HTTP endpoint
-    if curl -f -s -o /dev/null -w "%{{http_code}}" http://localhost:8005/api/tg-bot/health | grep -q "200"; then
+    if curl -f -s -o /dev/null -w "%{{http_code}}" http://localhost:{port}/{prefix}/health | grep -q "200"; then
         return 0
     else
         return 1

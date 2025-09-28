@@ -110,7 +110,13 @@ failed_releases_getter = FailedReleasesGetter(
 )
 
 # Инициализация сервисов
-release_service = ReleaseService(tel, release_repo)
+release_service = ReleaseService(
+    tel,
+    release_repo,
+    cfg.prod_host,
+    cfg.prod_password,
+    cfg.service_port_map,
+)
 main_menu_service = MainMenuService(
     tel,
 )

@@ -40,6 +40,13 @@ class IReleaseService(Protocol):
     ) -> None:
         pass
 
+    @abstractmethod
+    async def rollback_to_tag(
+            self,
+            service_name: str,
+            target_tag: str,
+    ): pass
+
 
 class IReleaseRepo(Protocol):
     @abstractmethod
