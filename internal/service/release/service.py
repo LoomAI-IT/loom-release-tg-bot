@@ -156,7 +156,8 @@ class ReleaseService(interface.IReleaseService):
                 host=self.prod_host,
                 username="root",
                 password=self.prod_password,
-                connect_timeout=30
+                connect_timeout=30,
+                known_hosts=None
         ) as conn:
             timestamp = int(time.time())
             script_file = f"/tmp/rollback_{service_name}_{target_tag}_{timestamp}.sh"
