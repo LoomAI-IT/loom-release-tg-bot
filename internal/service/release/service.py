@@ -85,7 +85,6 @@ class ReleaseService(interface.IReleaseService):
                 kind=SpanKind.INTERNAL,
                 attributes={
                     "release_id": release_id,
-                    "new_status": status.value,
                 }
         ) as span:
             try:
