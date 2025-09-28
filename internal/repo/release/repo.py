@@ -1,3 +1,5 @@
+import json
+
 from opentelemetry.trace import SpanKind, Status, StatusCode
 
 from internal.repo.release.query import *
@@ -51,6 +53,7 @@ class ReleaseRepo(interface.IReleaseRepo):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
+            approved_list: dict = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseRepo.update_release",
@@ -79,6 +82,10 @@ class ReleaseRepo(interface.IReleaseRepo):
                     update_fields.append("rollback_to_tag = :rollback_to_tag")
                     args['rollback_to_tag'] = rollback_to_tag
 
+                if approved_list is not None:
+                    update_fields.append("approved_list = :approved_list")
+                    args['approved_list'] = json.dumps(approved_list)
+
                 if not update_fields:
                     span.set_status(Status(StatusCode.OK))
                     return
@@ -104,6 +111,24 @@ class ReleaseRepo(interface.IReleaseRepo):
         ) as span:
             try:
                 rows = await self.db.select(get_active_releases, {})
+                if rows:
+                    rows = model.Release.serialize(rows)
+                span.set_status(StatusCode.OK)
+                return rows
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(StatusCode.ERROR, str(err))
+                raise
+
+    async def get_release_by_id(self, release_id: int) -> list[model.Release]:
+        with self.tracer.start_as_current_span(
+                "ReleaseRepo.get_release_by_id",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                args = {'release_id': release_id}
+                rows = await self.db.select(get_active_releases, args)
                 if rows:
                     rows = model.Release.serialize(rows)
                 span.set_status(StatusCode.OK)

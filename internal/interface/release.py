@@ -37,8 +37,12 @@ class IReleaseService(Protocol):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
+            approved_list: dict = None,
     ) -> None:
         pass
+
+    @abstractmethod
+    async def get_release_by_id(self, release_id: int) -> model.Release: pass
 
     @abstractmethod
     async def get_active_release(self) -> list[model.Release]: pass
@@ -80,8 +84,12 @@ class IReleaseRepo(Protocol):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
+            approved_list: dict = None,
     ) -> None:
         pass
+
+    @abstractmethod
+    async def get_release_by_id(self, release_id: int) -> list[model.Release]: pass
 
     @abstractmethod
     async def get_active_release(self) -> list[model.Release]: pass

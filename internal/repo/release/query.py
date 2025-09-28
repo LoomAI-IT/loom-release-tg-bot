@@ -20,6 +20,11 @@ VALUES (
 RETURNING id;
 """
 
+get_release_by_id = """
+SELECT * FROM releases
+WHERE id = :release_id
+"""
+
 get_active_releases = """
 SELECT * FROM releases
 WHERE status IN (

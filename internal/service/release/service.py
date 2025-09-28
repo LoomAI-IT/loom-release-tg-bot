@@ -79,6 +79,7 @@ class ReleaseService(interface.IReleaseService):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
+            approved_list: dict = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseService.update_release",
@@ -94,6 +95,7 @@ class ReleaseService(interface.IReleaseService):
                     github_run_id=github_run_id,
                     github_action_link=github_action_link,
                     rollback_to_tag=rollback_to_tag,
+                    approved_list=approved_list,
                 )
 
                 span.set_status(Status(StatusCode.OK))
@@ -110,6 +112,22 @@ class ReleaseService(interface.IReleaseService):
         ) as span:
             try:
                 releases = await self.release_repo.get_active_release()
+
+                span.set_status(Status(StatusCode.OK))
+                return releases
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(Status(StatusCode.ERROR, str(err)))
+                raise err
+
+    async def get_release_by_id(self, release_id: int) -> model.Release:
+        with self.tracer.start_as_current_span(
+                "ReleaseService.get_release_by_id",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                releases = (await self.release_repo.get_release_by_id(release_id))[0]
 
                 span.set_status(Status(StatusCode.OK))
                 return releases

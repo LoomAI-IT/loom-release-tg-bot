@@ -33,6 +33,7 @@ class Release:
     github_run_id: str
     github_action_link: str
     github_ref: str
+    approved_list: dict
 
     created_at: datetime
     started_at: datetime
@@ -51,6 +52,7 @@ class Release:
                 github_run_id=row.github_run_id,
                 github_action_link=row.github_action_link,
                 github_ref=row.github_ref,
+                approved_list=row.approved_list,
                 created_at=row.created_at,
                 started_at=row.started_at,
                 completed_at=row.completed_at,
@@ -69,6 +71,7 @@ class Release:
             'github_run_id': self.github_run_id,
             'github_action_link': self.github_action_link,
             'github_ref': self.github_ref,
+            'approved_list': self.approved_list,
             'created_at': self.created_at.isoformat() if self.created_at else None,
             'started_at': self.started_at.isoformat() if self.started_at else None,
             'completed_at': self.completed_at.isoformat() if self.completed_at else None,

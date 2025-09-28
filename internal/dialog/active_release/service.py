@@ -12,12 +12,14 @@ class ActiveReleaseService(interface.IActiveReleaseService):
             self,
             tel: interface.ITelemetry,
             release_service: interface.IReleaseService,
-            github_client: interface.IGitHubClient
+            github_client: interface.IGitHubClient,
+            approved_list: list[str]
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.release_service = release_service
         self.github_client = github_client
+        self.approved_list = approved_list
 
     async def handle_navigate_release(
             self,

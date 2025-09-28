@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS releases (
     github_run_id TEXT NOT NULL,
     github_action_link TEXT NOT NULL,
     github_ref TEXT NOT NULL,
+    approved_list JSONB DEFAULT '{}',
     
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     started_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
