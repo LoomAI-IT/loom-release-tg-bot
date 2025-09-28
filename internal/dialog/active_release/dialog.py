@@ -65,7 +65,7 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                                 {
                                     False: Multi(
                                         Const("<br><b>Необходимые подтверждения:</b><br>"),
-                                        Format("{required_approve_list_text}<br><br>"),
+                                        Format("{required_approve_list_text}<br>"),
                                         Format("📋 <b>Подтвердили:</b><br>"),
                                         Format("{approved_list_text}<br>"),
                                     ),

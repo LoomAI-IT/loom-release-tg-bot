@@ -1,3 +1,4 @@
+import json
 from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
@@ -52,7 +53,7 @@ class Release:
                 github_run_id=row.github_run_id,
                 github_action_link=row.github_action_link,
                 github_ref=row.github_ref,
-                approved_list=row.approved_list,
+                approved_list=json.loads(row.approved_list),
                 created_at=row.created_at,
                 started_at=row.started_at,
                 completed_at=row.completed_at,
