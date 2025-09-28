@@ -12,13 +12,11 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
             tel: interface.ITelemetry,
             active_release_service: interface.IActiveReleaseService,
             active_release_getter: interface.IActiveReleaseGetter,
-            required_approvers: list[str] = None,  # Новый параметр для списка обязательных подтверждающих
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.active_release_service = active_release_service
         self.active_release_getter = active_release_getter
-        self.required_approvers = required_approvers or ["@user1", "@user2"]
 
     def get_dialog(self) -> Dialog:
         return Dialog(
