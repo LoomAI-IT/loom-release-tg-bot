@@ -46,21 +46,10 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),
-                            # Новый блок для отображения статуса подтверждений
                             Case(
                                 {
-                                    True: Multi(
-                                        Const("✅ <b>Подтверждения:</b><br>"),
-                                        Format("{approval_status}<br>"),
-                                        Format("📋 <b>Прогресс:</b> {approval_progress}<br>"),
-                                    ),
-                                    False: Const(""),
-                                },
-                                selector="show_approval_status"
-                            ),
-                            Case(
-                                {
-                                    True: Format("🔗 <b>GitHub Action:</b> <a href='{github_action_link}'>Открыть</a><br>"),
+                                    True: Format(
+                                        "🔗 <b>GitHub Action:</b> <a href='{github_action_link}'>Открыть</a><br>"),
                                     False: Const(""),
                                 },
                                 selector="has_github_link"
@@ -71,6 +60,18 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                                     False: Const(""),
                                 },
                                 selector="has_waiting_time"
+                            ),
+                            Case(
+                                {
+                                    True: Multi(
+                                        Const("<b>Необходимые подтверждения:</b><br>"),
+                                        Format("{required_approve_list_text}<br>"),
+                                        Format("📋 <b>Подтвердили:</b><br>"),
+                                        Format("📋 {approved_list}<br>"),
+                                    ),
+                                    False: Const("Все подтверждения собраны"),
+                                },
+                                selector="is_approved"
                             ),
                         ),
                         False: Multi(
@@ -147,15 +148,19 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                 Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
                 Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                 Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
-                # Отображение текущего статуса подтверждений
-                Format("✅ <b>Текущие подтверждения:</b><br>{approval_status}<br>"),
-                Format("📋 <b>Прогресс:</b> {approval_progress}<br><br>"),
+
+                Const("<b>Необходимые подтверждения:</b><br>"),
+                Format("{required_approve_list_text}<br>"),
+                Format("📋 <b>Подтвердили:</b><br>"),
+                Format("📋 {approved_list}<br>"),
+
                 Case(
                     {
-                        True: Const("⚠️ <i>Ваше подтверждение будет добавлено к релизу</i>"),
-                        False: Const("⚠️ <i>После получения всех подтверждений релиз будет автоматически продолжен</i>"),
+                        True: Const(
+                            "⚠️ <i>Ваше подтверждение последнее, после вас будет запущен деплой на production</i>"),
+                        False: Const(""),
                     },
-                    selector="user_already_approved"
+                    selector="is_last_approve"
                 ),
                 sep="",
             ),

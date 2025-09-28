@@ -84,7 +84,7 @@ class ReleaseRepo(interface.IReleaseRepo):
 
                 if approved_list is not None:
                     update_fields.append("approved_list = :approved_list")
-                    args['approved_list'] = json.dumps(approved_list)
+                    args['approved_list'] = json.dumps(approved_list, ensure_ascii=False)
 
                 if not update_fields:
                     span.set_status(Status(StatusCode.OK))
