@@ -96,7 +96,8 @@ main_menu_getter = MainMenuGetter(
 
 active_release_getter = ActiveReleaseGetter(
     tel,
-    release_repo
+    release_repo,
+    cfg.required_approve_list
 )
 
 successful_releases_getter = SuccessfulReleasesGetter(
@@ -125,17 +126,20 @@ main_menu_service = MainMenuService(
 active_release_service = ActiveReleaseService(
     tel,
     release_service,
-    github_client
+    github_client,
+    cfg.required_approve_list
 )
 
 successful_releases_service = SuccessfulReleasesService(
     tel,
-    release_service
+    release_service,
+    cfg.admins
 )
 
 failed_releases_service = FailedReleasesService(
     tel,
-    release_service
+    release_service,
+    cfg.admins
 )
 
 main_menu_dialog = MainMenuDialog(

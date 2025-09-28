@@ -63,13 +63,13 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                             ),
                             Case(
                                 {
-                                    True: Multi(
+                                    False: Multi(
                                         Const("<b>Необходимые подтверждения:</b><br>"),
                                         Format("{required_approve_list_text}<br>"),
                                         Format("📋 <b>Подтвердили:</b><br>"),
-                                        Format("📋 {approved_list}<br>"),
+                                        Format("{approved_list_text}<br>"),
                                     ),
-                                    False: Const("Все подтверждения собраны"),
+                                    True: Const("Все подтверждения собраны"),
                                 },
                                 selector="is_approved"
                             ),

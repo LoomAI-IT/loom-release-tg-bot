@@ -11,11 +11,13 @@ class FailedReleasesService(interface.IFailedReleasesService):
     def __init__(
             self,
             tel: interface.ITelemetry,
-            release_service: interface.IReleaseService
+            release_service: interface.IReleaseService,
+            admins: list[str],
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.release_service = release_service
+        self.admins = admins
 
     async def handle_navigate_release(
             self,
@@ -100,6 +102,10 @@ class FailedReleasesService(interface.IFailedReleasesService):
         ) as span:
             try:
                 dialog_manager.show_mode = ShowMode.EDIT
+
+                if callback.from_user.username not in self.admins:
+                    await callback.answer("У вас нет прав", show_alert=True)
+                    return
 
                 dialog_manager.dialog_data["rollback_status"] = "not_run"
 

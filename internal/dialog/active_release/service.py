@@ -136,34 +136,71 @@ class ActiveReleaseService(interface.IActiveReleaseService):
 
                 current_release = dialog_manager.dialog_data.get("current_release", {})
                 release_id = current_release.get("id")
+                approver_username = callback.from_user.username
 
                 if not release_id:
                     raise ValueError("Release ID not found in dialog data")
 
-                # Обновляем статус релиза
-                await self.release_service.update_release(
-                    release_id=release_id,
-                    status=model.ReleaseStatus.MANUAL_TEST_PASSED
-                )
+                # Получаем текущий список подтверждений
+                current_approved_list = current_release.get("approved_list", [])
 
-                await self.github_client.trigger_workflow(
-                    owner="LoomAI-IT",
-                    repo=current_release["service_name"],
-                    workflow_id="on-approve-manual-testing.yaml.yml",
-                    inputs={
-                        "release_id": str(release_id),
-                        "release_tag": current_release["release_tag"],
-                    },
-                )
+                if approver_username not in self.required_approve_list:
+                    await callback.answer("У вас нет прав на подтверждение", show_alert=True)
+                    return
 
-                await callback.answer("✅ Релиз подтвержден", show_alert=True)
+                if approver_username in current_approved_list:
+                    await callback.answer("Вы уже подтвердили", show_alert=True)
+                    return
 
-                # Удаляем текущий релиз из списка и переходим к следующему
-                await self._remove_current_release_from_list(dialog_manager)
+
+                if len(current_approved_list) == len(self.required_approve_list):
+                    # Все подтверждения собраны - переводим в статус "тест пройден" и запускаем деплой
+                    await self.release_service.update_release(
+                        release_id=release_id,
+                        status=model.ReleaseStatus.MANUAL_TEST_PASSED
+                    )
+
+                    # Запускаем GitHub workflow для деплоя на продакшн
+                    await self.github_client.trigger_workflow(
+                        owner="LoomAI-IT",
+                        repo=current_release["service_name"],
+                        workflow_id="on-approve-manual-testing.yaml.yml",
+                        inputs={
+                            "release_id": str(release_id),
+                            "release_tag": current_release["release_tag"],
+                        },
+                    )
+
+                    await callback.answer(
+                        "✅ Релиз подтвержден!\n"
+                        "🚀 Все подтверждения собраны - запускается деплой на продакшн!",
+                        show_alert=True
+                    )
+
+                    await self._remove_current_release_from_list(dialog_manager)
+
+                    self.logger.info(
+                        f"Релиз {release_id} полностью подтвержден пользователем {approver_username}. "
+                        f"Запущен деплой на продакшн"
+                    )
+                else:
+                    current_approved_list.append(approver_username)
+
+                    await self.release_service.update_release(
+                        release_id=release_id,
+                        approved_list=current_approved_list,
+                    )
+
+                    await callback.answer(f"✅ Ваше подтверждение учтено!", show_alert=True)
+
+                    self.logger.info(f"Релиз {release_id} подтвержден пользователем {approver_username}.")
+
+                # Обновляем данные текущего релиза в dialog_data
+                current_release["approved_list"] = current_approved_list
+                dialog_manager.dialog_data["current_release"] = current_release
 
                 await dialog_manager.switch_to(model.ActiveReleaseStates.view_releases)
 
-                self.logger.info("Релиз подтвержден")
                 span.set_status(Status(StatusCode.OK))
 
             except Exception as err:
@@ -188,11 +225,16 @@ class ActiveReleaseService(interface.IActiveReleaseService):
 
                 current_release = dialog_manager.dialog_data.get("current_release", {})
                 release_id = current_release.get("id")
+                rejector_username = callback.from_user.username
 
                 if not release_id:
                     raise ValueError("Release ID not found in dialog data")
 
-                # Обновляем статус релиза
+                if rejector_username not in self.required_approve_list:
+                    await callback.answer("У вас нет прав на подтверждение", show_alert=True)
+                    return
+
+                # Обновляем статус релиза на отклонен
                 await self.release_service.update_release(
                     release_id=release_id,
                     status=model.ReleaseStatus.MANUAL_TEST_FAILED
@@ -200,12 +242,13 @@ class ActiveReleaseService(interface.IActiveReleaseService):
 
                 await callback.answer("❌ Релиз отклонен", show_alert=True)
 
+                self.logger.info(f"Релиз {release_id} отклонен пользователем {rejector_username}")
+
                 # Удаляем текущий релиз из списка и переходим к следующему
                 await self._remove_current_release_from_list(dialog_manager)
 
                 await dialog_manager.switch_to(model.ActiveReleaseStates.view_releases)
 
-                self.logger.info("Релиз отклонен")
                 span.set_status(Status(StatusCode.OK))
 
             except Exception as err:

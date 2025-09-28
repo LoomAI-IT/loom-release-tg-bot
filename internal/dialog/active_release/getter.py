@@ -9,11 +9,13 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
     def __init__(
             self,
             tel: interface.ITelemetry,
-            release_repo: interface.IReleaseRepo
+            release_repo: interface.IReleaseRepo,
+            required_approve_list: list[str]
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.release_repo = release_repo
+        self.required_approve_list = required_approve_list
 
     async def get_releases_data(
             self,
@@ -61,6 +63,10 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 # Определяем период
                 period_text = self._get_period_text(releases)
 
+                # Обрабатываем информацию о подтверждениях
+                approved_list = current_release.approved_list or []
+                approval_info = self._process_approval_info(approved_list)
+
                 # Форматируем данные релиза
                 release_data = {
                     "service_name": current_release.service_name,
@@ -73,7 +79,16 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                     "github_action_link": current_release.github_action_link,
                     "waiting_time": waiting_time,
                     "has_waiting_time": bool(waiting_time),
+                    **approval_info,
                 }
+
+                # Определяем, показывать ли кнопки подтверждения/отклонения
+                current_user = dialog_manager.event.from_user.username or dialog_manager.event.from_user.first_name
+                show_manual_testing_buttons = (
+                        current_release.status == model.ReleaseStatus.MANUAL_TESTING and
+                        current_user in self.required_approve_list and
+                        current_user not in approved_list
+                )
 
                 data = {
                     "has_releases": True,
@@ -83,7 +98,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                     "has_prev": current_index > 0,
                     "has_next": current_index < len(releases) - 1,
                     "has_rollback": bool(current_release.rollback_to_tag),
-                    "show_manual_testing_buttons": current_release.status == model.ReleaseStatus.MANUAL_TESTING,
+                    "show_manual_testing_buttons": show_manual_testing_buttons,
                     **release_data,
                 }
 
@@ -111,11 +126,15 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
         ) as span:
             try:
                 current_release = dialog_manager.dialog_data.get("current_release", {})
+                approved_list = current_release.get("approved_list", [])
 
+                # Обрабатываем информацию о подтверждениях для диалога подтверждения
+                approval_info = self._process_approval_info(approved_list)
                 data = {
                     "service_name": current_release.get("service_name", "Неизвестно"),
                     "release_tag": current_release.get("release_tag", "Неизвестно"),
                     "initiated_by": current_release.get("initiated_by", "Неизвестно"),
+                    **approval_info,
                 }
 
                 span.set_status(Status(StatusCode.OK))
@@ -152,6 +171,26 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 span.set_status(Status(StatusCode.ERROR, str(err)))
                 raise err
 
+    def _process_approval_info(self, approved_list: list[str]) -> dict:
+        approved_user = []
+
+        for user in self.required_approve_list:
+            if user in approved_user:
+                approved_user.append(user)
+
+        required_approve_list_text = "<br>".join(self.required_approve_list)
+        approved_list_text = "<br>".join(approved_list) if approved_list else "Никто еще не подтвердил"
+
+        is_approved = True if len(approved_list) == len(self.required_approve_list) else False
+        is_last_approve = True if len(approved_list) == len(self.required_approve_list) - 1 else False
+
+        return {
+            "required_approve_list_text": required_approve_list_text,
+            "approved_list_text": approved_list_text,
+            "is_approved": is_approved,
+            "is_last_approve": is_last_approve,
+        }
+
     def _format_status(self, status: model.ReleaseStatus) -> str:
         """Форматирует статус релиза с эмодзи"""
         status_map = {
@@ -164,6 +203,9 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
             model.ReleaseStatus.DEPLOYING: "🚀 Деплой",
             model.ReleaseStatus.DEPLOYED: "✅ Задеплоен",
             model.ReleaseStatus.PRODUCTION_FAILED: "❌ Ошибка на prod",
+            model.ReleaseStatus.ROLLBACK: "⏪ Откат",
+            model.ReleaseStatus.ROLLBACK_FAILED: "❌ Ошибка отката",
+            model.ReleaseStatus.ROLLBACK_DONE: "✅ Успешный откат",
         }
         return status_map.get(status, status.value if hasattr(status, 'value') else str(status))
 
@@ -262,21 +304,3 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
 
         except Exception:
             return "За последнее время"
-
-    def _calculate_waiting_hours(self, created_at: datetime) -> int:
-        """Вычисляет количество часов ожидания"""
-        if not created_at:
-            return 0
-
-        try:
-            if isinstance(created_at, str):
-                created_at = datetime.fromisoformat(created_at.replace('Z', '+00:00'))
-
-            now = datetime.now(timezone.utc)
-            if created_at.tzinfo is None:
-                created_at = created_at.replace(tzinfo=timezone.utc)
-
-            delta = now - created_at
-            return int(delta.total_seconds() / 3600)
-        except Exception:
-            return 0

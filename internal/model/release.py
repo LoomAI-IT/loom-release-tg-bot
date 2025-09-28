@@ -33,7 +33,7 @@ class Release:
     github_run_id: str
     github_action_link: str
     github_ref: str
-    approved_list: dict
+    approved_list: list[str]
 
     created_at: datetime
     started_at: datetime

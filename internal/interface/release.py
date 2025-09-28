@@ -37,7 +37,7 @@ class IReleaseService(Protocol):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
-            approved_list: dict = None,
+            approved_list: list[str] = None,
     ) -> None:
         pass
 
@@ -84,7 +84,7 @@ class IReleaseRepo(Protocol):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
-            approved_list: dict = None,
+            approved_list: list[str] = None,
     ) -> None:
         pass
 

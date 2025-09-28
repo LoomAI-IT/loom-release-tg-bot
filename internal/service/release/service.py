@@ -79,7 +79,7 @@ class ReleaseService(interface.IReleaseService):
             github_run_id: str = None,
             github_action_link: str = None,
             rollback_to_tag: str = None,
-            approved_list: dict = None,
+            approved_list: list[str] = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseService.update_release",
