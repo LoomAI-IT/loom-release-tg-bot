@@ -134,6 +134,7 @@ successful_releases_service = SuccessfulReleasesService(
 
 failed_releases_service = FailedReleasesService(
     tel,
+    release_service
 )
 
 main_menu_dialog = MainMenuDialog(
