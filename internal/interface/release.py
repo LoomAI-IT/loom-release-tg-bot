@@ -3,7 +3,6 @@ from typing import Protocol
 
 from fastapi.responses import JSONResponse
 
-from internal import model
 from internal.controller.http.handler.release.model import *
 
 
@@ -22,7 +21,7 @@ class IReleaseService(Protocol):
     async def create_release(
             self,
             service_name: str,
-            release_version: str,
+            release_tag: str,
             initiated_by: str,
             github_run_id: str,
             github_action_link: str,
@@ -37,7 +36,7 @@ class IReleaseService(Protocol):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
-            rollback_to_version: str = None,
+            rollback_to_tag: str = None,
     ) -> None:
         pass
 
@@ -63,7 +62,7 @@ class IReleaseRepo(Protocol):
     async def create_release(
             self,
             service_name: str,
-            release_version: str,
+            release_tag: str,
             status: model.ReleaseStatus,
             initiated_by: str,
             github_run_id: str,
@@ -79,7 +78,7 @@ class IReleaseRepo(Protocol):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
-            rollback_to_version: str = None,
+            rollback_to_tag: str = None,
     ) -> None:
         pass
 

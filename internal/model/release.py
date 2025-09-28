@@ -25,8 +25,8 @@ class ReleaseStatus(Enum):
 class Release:
     id: int
     service_name: str
-    release_version: str
-    rollback_to_version: str
+    release_tag: str
+    rollback_to_tag: str
     status: ReleaseStatus
 
     initiated_by: str
@@ -44,8 +44,8 @@ class Release:
             cls(
                 id=row.id,
                 service_name=row.service_name,
-                release_version=row.release_version,
-                rollback_to_version=row.rollback_to_version,
+                release_tag=row.release_tag,
+                rollback_to_tag=row.rollback_to_tag,
                 status=ReleaseStatus(row.status),
                 initiated_by=row.initiated_by,
                 github_run_id=row.github_run_id,
@@ -62,8 +62,8 @@ class Release:
         return {
             'id': self.id,
             'service_name': self.service_name,
-            'release_version': self.release_version,
-            'rollback_to_version': self.rollback_to_version,
+            'release_tag': self.release_tag,
+            'rollback_to_tag': self.rollback_to_tag,
             'status': self.status.value,  # assuming ReleaseStatus is an enum
             'initiated_by': self.initiated_by,
             'github_run_id': self.github_run_id,

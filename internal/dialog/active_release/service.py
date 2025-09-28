@@ -150,7 +150,7 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                     workflow_id="on-approve-manual-testing.yaml.yml",
                     inputs={
                         "release_id": str(release_id),
-                        "release_version": current_release["release_version"],
+                        "release_tag": current_release["release_tag"],
                     },
                 )
 

@@ -34,7 +34,7 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                     {
                         True: Multi(
                             Format("📦 <b>{service_name}</b><br>"),
-                            Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                            Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),
@@ -126,7 +126,7 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                 Const("✅ <b>Подтверждение релиза</b><br><br>"),
                 Format("Вы уверены, что хотите подтвердить релиз?<br><br>"),
                 Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                 Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br><br>"),
                 Const("⚠️ <i>После подтверждения релиз будет отмечен как успешно протестированный</i>"),
                 sep="",
@@ -154,7 +154,7 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                 Const("❌ <b>Отклонение релиза</b><br><br>"),
                 Format("Вы уверены, что хотите отклонить релиз?<br><br>"),
                 Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                 Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br><br>"),
                 Const("⚠️ <i>После отклонения релиз будет отмечен как неуспешный</i>"),
                 sep="",

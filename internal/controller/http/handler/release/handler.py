@@ -21,7 +21,7 @@ class ReleaseController(interface.IReleaseController):
                 kind=SpanKind.INTERNAL,
                 attributes={
                     "service_name": body.service_name,
-                    "release_version": body.release_version,
+                    "release_tag": body.release_tag,
                     "initiated_by": body.initiated_by,
                     "github_run_id": body.github_run_id,
                 }
@@ -31,7 +31,7 @@ class ReleaseController(interface.IReleaseController):
 
                 release_id = await self.release_service.create_release(
                     service_name=body.service_name,
-                    release_version=body.release_version,
+                    release_tag=body.release_tag,
                     initiated_by=body.initiated_by,
                     github_run_id=body.github_run_id,
                     github_action_link=body.github_action_link,

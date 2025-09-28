@@ -5,7 +5,7 @@ from internal import model
 
 class CreateReleaseBody(BaseModel):
     service_name: str
-    release_version: str
+    release_tag: str
     status: model.ReleaseStatus
     initiated_by: str
     github_run_id: str

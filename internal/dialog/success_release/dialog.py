@@ -1,4 +1,3 @@
-from aiogram import F
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.text import Const, Format, Case, Multi
 from aiogram_dialog.widgets.kbd import Button, Column, Row, Select, Group
@@ -22,7 +21,7 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
     def get_dialog(self) -> Dialog:
         return Dialog(
             self.get_view_successful_releases_window(),
-            self.get_select_rollback_version_window(),
+            self.get_select_rollback_tag_window(),
             self.get_confirm_rollback_window(),
         )
 
@@ -34,7 +33,7 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                     {
                         True: Multi(
                             Format("📦 <b>{service_name}</b><br>"),
-                            Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                            Format("🏷️ <b>Версия:</b> <code>{release_tag}</code><br>"),
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),
@@ -99,12 +98,12 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
             parse_mode=SULGUK_PARSE_MODE,
         )
 
-    def get_select_rollback_version_window(self) -> Window:
+    def get_select_rollback_tag_window(self) -> Window:
         return Window(
             Multi(
                 Const("⏪ <b>Выбор версии для отката</b><br><br>"),
                 Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                Format("🏷️ <b>Текущая версия:</b> <code>{current_version}</code><br><br>"),
+                Format("🏷️ <b>Текущая версия:</b> <code>{current_tag}</code><br><br>"),
                 Const("📋 <b>Выберите версию для отката:</b><br>"),
                 Const("<i>Показаны последние 3 успешных релиза</i>"),
                 sep="",
@@ -112,11 +111,11 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
 
             Group(
                 Select(
-                    Format("🏷️ {item[release_version]} ({item[deployed_at_formatted]})"),
-                    id="rollback_version_select",
-                    items="available_versions",
+                    Format("🏷️ {item[release_tag]} ({item[deployed_at_formatted]})"),
+                    id="rollback_tag_select",
+                    items="available_tags",
                     item_id_getter=lambda item: str(item["id"]),
-                    on_click=self.successful_releases_service.handle_version_selected,
+                    on_click=self.successful_releases_service.handle_tag_selected,
                 ),
                 width=1,
             ),
@@ -127,8 +126,8 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                 on_click=lambda c, b, d: d.switch_to(model.SuccessfulReleasesStates.view_releases),
             ),
 
-            state=model.SuccessfulReleasesStates.select_rollback_version,
-            getter=self.successful_releases_getter.get_rollback_versions_data,
+            state=model.SuccessfulReleasesStates.select_rollback_tag,
+            getter=self.successful_releases_getter.get_rollback_tags_data,
             parse_mode=SULGUK_PARSE_MODE,
         )
 
@@ -140,8 +139,8 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                         Const("⚠️ <b>Подтверждение отката</b><br><br>"),
                         Const("❗ <b>ВНИМАНИЕ!</b> Вы собираетесь откатить релиз!<br><br>"),
                         Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                        Format("🏷️ <b>Текущая версия:</b> <code>{current_version}</code><br>"),
-                        Format("⏪ <b>Откатить на:</b> <code>{target_version}</code><br>"),
+                        Format("🏷️ <b>Текущий tag:</b> <code>{current_tag}</code><br>"),
+                        Format("⏪ <b>Откатить на tag:</b> <code>{target_tag}</code><br>"),
                         Format("📅 <b>Дата деплоя выбранной версии:</b> <code>{target_deployed_at}</code><br><br>"),
                         Const("⚠️ <i>Это действие приведет к откату сервиса на выбранную версию.</i><br>"),
                         Const("⚠️ <i>Убедитесь, что откат действительно необходим!</i>"),
@@ -163,8 +162,8 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                 {
                     True: Multi(
                         Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                        Format("🏷️ <b>Прошлая версия:</b> <code>{prev_version}</code><br>"),
-                        Format("⏪ <b>Текущая версия:</b> <code>{current_version}</code><br>"),
+                        Format("🏷️ <b>Прошлый tag:</b> <code>{prev_tag}</code><br>"),
+                        Format("⏪ <b>Текущий tag:</b> <code>{current_tag}</code><br>"),
                     ),
                     False: Const("")
                 },

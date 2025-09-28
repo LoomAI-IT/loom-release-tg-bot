@@ -1,7 +1,7 @@
 create_release = """
 INSERT INTO releases (
     service_name, 
-    release_version, 
+    release_tag, 
     status, 
     initiated_by, 
     github_run_id, 
@@ -10,7 +10,7 @@ INSERT INTO releases (
 )
 VALUES (
     :service_name, 
-    :release_version, 
+    :release_tag, 
     :status, 
     :initiated_by, 
     :github_run_id, 

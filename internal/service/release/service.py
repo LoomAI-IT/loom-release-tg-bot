@@ -26,7 +26,7 @@ class ReleaseService(interface.IReleaseService):
     async def create_release(
             self,
             service_name: str,
-            release_version: str,
+            release_tag: str,
             initiated_by: str,
             github_run_id: str,
             github_action_link: str,
@@ -37,7 +37,7 @@ class ReleaseService(interface.IReleaseService):
                 kind=SpanKind.INTERNAL,
                 attributes={
                     "service_name": service_name,
-                    "release_version": release_version,
+                    "release_tag": release_tag,
                     "initiated_by": initiated_by,
                     "github_run_id": github_run_id,
                     "github_ref": github_ref,
@@ -46,7 +46,7 @@ class ReleaseService(interface.IReleaseService):
             try:
                 release_id = await self.release_repo.create_release(
                     service_name=service_name,
-                    release_version=release_version,
+                    release_tag=release_tag,
                     status=model.ReleaseStatus.INITIATED,
                     initiated_by=initiated_by,
                     github_run_id=github_run_id,
@@ -62,7 +62,7 @@ class ReleaseService(interface.IReleaseService):
                     f"Ошибка при создании релиза для сервиса {service_name}",
                     {
                         "service_name": service_name,
-                        "release_version": release_version,
+                        "release_tag": release_tag,
                         "error": str(err),
                     }
                 )
@@ -76,7 +76,7 @@ class ReleaseService(interface.IReleaseService):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
-            rollback_to_version: str = None,
+            rollback_to_tag: str = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseService.update_release",
@@ -92,7 +92,7 @@ class ReleaseService(interface.IReleaseService):
                     status=status,
                     github_run_id=github_run_id,
                     github_action_link=github_action_link,
-                    rollback_to_version=rollback_to_version,
+                    rollback_to_tag=rollback_to_tag,
                 )
 
                 span.set_status(Status(StatusCode.OK))
@@ -184,13 +184,13 @@ class ReleaseService(interface.IReleaseService):
         prefix = f"/api/{service_name.replace("loom-", "")}"
         port = self.service_port_map[service_name]
 
-        rollback_commands = f"""# Откат сервиса {service_name} на тег {target_tag}
+        rollback_commands = f"""# Откат сервиса {service_name} на версию {target_tag}
 set -e
 
 # Создаем директорию для логов если её нет
 mkdir -p /var/log/deployments/rollback/{service_name}
 
-# Создаем файл лога с именем тега для отката
+# Создаем файл лога с именем версии для отката
 LOG_FILE="/var/log/deployments/rollback/{service_name}/{target_tag}-rollback.log"
 
 # Функция для логирования
@@ -199,7 +199,7 @@ log_message() {{
     echo "$(date '+%Y-%m-%d %H:%M:%S') - $message" | tee -a "$LOG_FILE"
 }}
 
-log_message "🔄 Начинаем откат сервиса {service_name} на тег {target_tag}"
+log_message "🔄 Начинаем откат сервиса {service_name} на версию {target_tag}"
 
 # 1. Переходим в директорию сервиса
 cd loom/{service_name}
@@ -208,7 +208,7 @@ cd loom/{service_name}
 CURRENT_REF=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD)
 log_message "🔍 Текущее состояние до отката: $CURRENT_REF"
 
-# 3. Обновляем репозиторий и теги
+# 3. Обновляем репозиторий и версии
 log_message "📥 Обновляем репозиторий и теги для отката..."
 
 if git tag -l | grep -q "^{target_tag}$"; then

@@ -31,7 +31,7 @@ class FailedReleasesDialog(interface.IFailedReleasesDialog):
                     {
                         True: Multi(
                             Format("📦 <b>{service_name}</b><br>"),
-                            Format("🏷️ <b>Версия:</b> <code>{release_version}</code><br>"),
+                            Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),

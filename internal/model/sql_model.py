@@ -2,8 +2,8 @@ create_release_table = """
 CREATE TABLE IF NOT EXISTS releases (
     id SERIAL PRIMARY KEY,
     service_name TEXT NOT NULL,
-    release_version TEXT NOT NULL,
-    rollback_to_version TEXT DEFAULT '',
+    release_tag TEXT NOT NULL,
+    rollback_to_tag TEXT DEFAULT '',
     status TEXT NOT NULL,
     
     initiated_by TEXT NOT NULL,

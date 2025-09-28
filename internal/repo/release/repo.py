@@ -13,7 +13,7 @@ class ReleaseRepo(interface.IReleaseRepo):
     async def create_release(
             self,
             service_name: str,
-            release_version: str,
+            release_tag: str,
             status: model.ReleaseStatus,
             initiated_by: str,
             github_run_id: str,
@@ -27,7 +27,7 @@ class ReleaseRepo(interface.IReleaseRepo):
             try:
                 args = {
                     "service_name": service_name,
-                    "release_version": release_version,
+                    "release_tag": release_tag,
                     "status": status.value,
                     "initiated_by": initiated_by,
                     "github_run_id": github_run_id,
@@ -50,7 +50,7 @@ class ReleaseRepo(interface.IReleaseRepo):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
-            rollback_to_version: str = None,
+            rollback_to_tag: str = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseRepo.update_release",
@@ -75,9 +75,9 @@ class ReleaseRepo(interface.IReleaseRepo):
                     update_fields.append("github_action_link = :github_action_link")
                     args['github_action_link'] = github_action_link
 
-                if rollback_to_version is not None:
-                    update_fields.append("rollback_to_version = :rollback_to_version")
-                    args['rollback_to_version'] = rollback_to_version
+                if rollback_to_tag is not None:
+                    update_fields.append("rollback_to_tag = :rollback_to_tag")
+                    args['rollback_to_tag'] = rollback_to_tag
 
                 if not update_fields:
                     span.set_status(Status(StatusCode.OK))

@@ -14,7 +14,7 @@ class ISuccessfulReleasesDialog(Protocol):
         pass
 
     @abstractmethod
-    def get_select_rollback_version_window(self) -> Window:
+    def get_select_rollback_tag_window(self) -> Window:
         pass
 
     @abstractmethod
@@ -60,7 +60,7 @@ class ISuccessfulReleasesService(Protocol):
         pass
 
     @abstractmethod
-    async def handle_version_selected(
+    async def handle_tag_selected(
             self,
             callback: CallbackQuery,
             widget: Any,
@@ -88,7 +88,7 @@ class ISuccessfulReleasesGetter(Protocol):
         pass
 
     @abstractmethod
-    async def get_rollback_versions_data(
+    async def get_rollback_tags_data(
             self,
             dialog_manager: DialogManager,
     ) -> dict:

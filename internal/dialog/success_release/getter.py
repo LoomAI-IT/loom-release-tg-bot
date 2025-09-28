@@ -57,7 +57,7 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                 # Форматируем данные релиза
                 release_data = {
                     "service_name": current_release.service_name,
-                    "release_version": current_release.release_version,
+                    "release_tag": current_release.release_tag,
                     "status_text": self._format_status(current_release.status),
                     "initiated_by": current_release.initiated_by,
                     "created_at_formatted": self._format_datetime(current_release.created_at),
@@ -71,7 +71,7 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                     "current_index": current_index + 1,
                     "has_prev": current_index > 0,
                     "has_next": current_index < len(releases) - 1,
-                    "has_rollback": bool(current_release.rollback_to_version),
+                    "has_rollback": bool(current_release.rollback_to_tag),
                     **release_data,
                 }
 
@@ -85,41 +85,41 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                 span.set_status(Status(StatusCode.ERROR, str(err)))
                 raise err
 
-    async def get_rollback_versions_data(
+    async def get_rollback_tags_data(
             self,
             dialog_manager: DialogManager,
             **kwargs
     ) -> dict:
         """Получает данные для окна выбора версии отката"""
         with self.tracer.start_as_current_span(
-                "SuccessfulReleasesGetter.get_rollback_versions_data",
+                "SuccessfulReleasesGetter.get_rollback_tags_data",
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
                 # Получаем текущий релиз и доступные версии из dialog_data
                 current_release = dialog_manager.dialog_data.get("rollback_current_release", {})
-                available_versions = dialog_manager.dialog_data.get("available_rollback_versions", [])
+                available_tags = dialog_manager.dialog_data.get("available_rollback_tags", [])
 
                 # Форматируем данные версий для отображения
-                formatted_versions = []
-                for version in available_versions:
-                    formatted_version = {
-                        "id": version.get("id"),
-                        "release_version": version.get("release_version"),
-                        "deployed_at_formatted": self._format_datetime(version.get("completed_at")),
-                        "initiated_by": version.get("initiated_by"),
+                formatted_tags = []
+                for tag in available_tags:
+                    formatted_tag = {
+                        "id": tag.get("id"),
+                        "release_tag": tag.get("release_tag"),
+                        "deployed_at_formatted": self._format_datetime(tag.get("completed_at")),
+                        "initiated_by": tag.get("initiated_by"),
                     }
-                    formatted_versions.append(formatted_version)
+                    formatted_tags.append(formatted_tag)
 
                 data = {
                     "service_name": current_release.get("service_name", "Неизвестно"),
-                    "current_version": current_release.get("release_version", "Неизвестно"),
-                    "available_versions": formatted_versions,
-                    "has_versions": len(formatted_versions) > 0,
+                    "current_tag": current_release.get("release_tag", "Неизвестно"),
+                    "available_tags": formatted_tags,
+                    "has_tags": len(formatted_tags) > 0,
                 }
 
                 self.logger.info(
-                    f"Загружены версии для отката: {len(formatted_versions)} версий"
+                    f"Загружены версии для отката: {len(formatted_tags)} версий"
                 )
 
                 span.set_status(Status(StatusCode.OK))
@@ -144,21 +144,21 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
             try:
                 # Получаем данные из dialog_data
                 current_release = dialog_manager.dialog_data.get("rollback_current_release", {})
-                target_version = dialog_manager.dialog_data.get("rollback_target_version", {})
+                target_tag = dialog_manager.dialog_data.get("rollback_target_tag", {})
 
                 data = {
                     "service_name": current_release.get("service_name", "Неизвестно"),
-                    "current_version": current_release.get("release_version", "Неизвестно"),
-                    "target_version": target_version.get("release_version", "Неизвестно"),
+                    "current_tag": current_release.get("release_tag", "Неизвестно"),
+                    "target_tag": target_tag.get("release_tag", "Неизвестно"),
                     "target_deployed_at": self._format_datetime(
-                        target_version.get("completed_at")
+                        target_tag.get("completed_at")
                     ),
-                    "target_initiated_by": target_version.get("initiated_by", "Неизвестно"),
+                    "target_initiated_by": target_tag.get("initiated_by", "Неизвестно"),
                 }
 
                 self.logger.info(
                     f"Подготовка подтверждения отката: "
-                    f"{data['service_name']} с {data['current_version']} на {data['target_version']}"
+                    f"{data['service_name']} с {data['current_tag']} на {data['target_tag']}"
                 )
 
                 span.set_status(Status(StatusCode.OK))
