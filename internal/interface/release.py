@@ -52,6 +52,7 @@ class IReleaseService(Protocol):
     @abstractmethod
     async def rollback_to_tag(
             self,
+            release_id: int,
             service_name: str,
             target_tag: str,
     ): pass

@@ -34,7 +34,16 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                     {
                         True: Multi(
                             Format("📦 <b>{service_name}</b><br>"),
-                            Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
+                            Case(
+                                {
+                                    False: Format("🏷️ <b>Tag:</b> <code>{current_tag}</code><br>"),
+                                    True: Multi(
+                                        Format("🏷️ <b>Текущий tag:</b> <code>{current_tag}</code><br>"),
+                                        Format("🏷️ <b>Прошлый tag:</b> <code>{old_tag}</code><br>"),
+                                    ),
+                                },
+                                selector="has_rollback"
+                            ),
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),

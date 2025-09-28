@@ -242,6 +242,7 @@ class FailedReleasesService(interface.IFailedReleasesService):
 
                 # Вызываем метод отката
                 await self.release_service.rollback_to_tag(
+                    release_id=current_release.get("id"),
                     service_name=service_name,
                     target_tag=target_tag
                 )

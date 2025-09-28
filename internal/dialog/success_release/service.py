@@ -253,11 +253,6 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
 
                 self.logger.info(f"Начинаем откат сервиса {service_name} на версию {target_tag}")
 
-                await self.release_service.update_release(
-                    release_id=current_release.get("id"),
-                    rollback_to_tag=target_tag
-                )
-
                 dialog_manager.dialog_data["has_run_rollback"] = True
                 dialog_manager.dialog_data["rollback_status"] = "run"
 
@@ -268,8 +263,13 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                 )
                 await dialog_manager.show()
 
-                # Вызываем метод отката
+                await self.release_service.update_release(
+                    release_id=current_release.get("id"),
+                    rollback_to_tag=target_tag
+                )
+
                 await self.release_service.rollback_to_tag(
+                    release_id=current_release.get("id"),
                     service_name=service_name,
                     target_tag=target_tag
                 )

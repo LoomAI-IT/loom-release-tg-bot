@@ -125,8 +125,8 @@ class FailedReleasesDialog(interface.IFailedReleasesDialog):
             Group(
                 Select(
                     Format("🏷️ {item[release_tag]} ({item[deployed_at_formatted]})"),
-                    id="rollback_tag_select",
-                    items="available_tags",
+                    id="rollback_releases_select",
+                    items="available_releases",
                     item_id_getter=lambda item: str(item["id"]),
                     on_click=self.failed_releases_service.handle_tag_selected,
                 ),

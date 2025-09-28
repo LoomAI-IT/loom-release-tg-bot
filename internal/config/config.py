@@ -16,6 +16,7 @@ class Config:
         self.github_token: str = os.environ.get("LOOM_GITHUB_TOKEN")
         self.prod_host: str = os.environ.get("PROD_HOST")
         self.prod_password: str = os.environ.get("PROD_PASSWORD")
+        self.loom_release_tg_bot_api_url: str = os.environ.get("LOOM_RELEASE_TG_BOT_API_URL")
 
         self.service_port_map = {
             os.getenv("LOOM_TG_BOT_CONTAINER_NAME"): int(os.getenv("LOOM_TG_BOT_PORT")),

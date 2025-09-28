@@ -64,7 +64,8 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 # Форматируем данные релиза
                 release_data = {
                     "service_name": current_release.service_name,
-                    "release_tag": current_release.release_tag,
+                    "current_tag": current_release.release_tag,
+                    "old_tag": current_release.rollback_to_tag,
                     "status_text": self._format_status(current_release.status),
                     "initiated_by": current_release.initiated_by,
                     "created_at_formatted": self._format_datetime(current_release.created_at),
@@ -81,6 +82,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                     "current_index": current_index + 1,
                     "has_prev": current_index > 0,
                     "has_next": current_index < len(releases) - 1,
+                    "has_rollback": bool(current_release.rollback_to_tag),
                     "show_manual_testing_buttons": current_release.status == model.ReleaseStatus.MANUAL_TESTING,
                     **release_data,
                 }

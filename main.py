@@ -116,6 +116,7 @@ release_service = ReleaseService(
     cfg.prod_host,
     cfg.prod_password,
     cfg.service_port_map,
+    cfg.loom_release_tg_bot_api_url,
 )
 main_menu_service = MainMenuService(
     tel,
