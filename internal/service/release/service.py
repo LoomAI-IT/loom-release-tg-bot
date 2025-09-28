@@ -275,7 +275,7 @@ docker images | grep {service_name} | tee -a "$LOG_FILE"
 # 8. Проверяем здоровье сервиса после отката
 check_health() {{
     # Если есть HTTP endpoint
-    if curl -f -s -o /dev/null -w "%{{http_code}}" http://localhost:{port}/{prefix}/health | grep -q "200"; then
+    if curl -f -s -o /dev/null -w "%{{http_code}}" http://localhost:{port}{prefix}/health | grep -q "200"; then
         return 0
     else
         return 1
