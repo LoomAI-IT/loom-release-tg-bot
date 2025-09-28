@@ -52,7 +52,6 @@ class ActiveReleaseDialog(interface.IActiveReleaseDialog):
                                 },
                                 selector="has_waiting_time"
                             ),
-                            Const("<br>━━━━━━━━━━━━━━━━━━━━━"),
                         ),
                         False: Multi(
                             Const("📭 <b>Нет активных релизов</b><br><br>"),

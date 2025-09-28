@@ -48,7 +48,7 @@ WHERE status IN (
     'staging_failed',
     'manual_test_failed',
     'production_failed',
-    'rollback_failed',
+    'rollback_failed'
 )
 ORDER BY created_at DESC;
 """

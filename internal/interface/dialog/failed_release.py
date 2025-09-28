@@ -25,6 +25,34 @@ class IFailedReleasesService(Protocol):
         pass
 
     @abstractmethod
+    async def handle_rollback_click(
+            self,
+            callback: CallbackQuery,
+            button: Any,
+            dialog_manager: DialogManager
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def handle_tag_selected(
+            self,
+            callback: CallbackQuery,
+            widget: Any,
+            dialog_manager: DialogManager,
+            item_id: str
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def handle_confirm_rollback(
+            self,
+            callback: CallbackQuery,
+            button: Any,
+            dialog_manager: DialogManager
+    ) -> None:
+        pass
+
+    @abstractmethod
     async def handle_navigate_release(
             self,
             callback: CallbackQuery,
@@ -46,6 +74,20 @@ class IFailedReleasesService(Protocol):
 class IFailedReleasesGetter(Protocol):
     @abstractmethod
     async def get_releases_data(
+            self,
+            dialog_manager: DialogManager,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    async def get_rollback_tags_data(
+            self,
+            dialog_manager: DialogManager,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    async def get_rollback_confirm_data(
             self,
             dialog_manager: DialogManager,
     ) -> dict:
