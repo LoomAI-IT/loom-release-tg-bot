@@ -1,6 +1,6 @@
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.text import Const, Format, Case, Multi
-from aiogram_dialog.widgets.kbd import Button, Column, Row
+from aiogram_dialog.widgets.kbd import Button, Column, Row, Select, Group
 from sulguk import SULGUK_PARSE_MODE
 
 from internal import interface, model
@@ -21,6 +21,8 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
     def get_dialog(self) -> Dialog:
         return Dialog(
             self.get_view_successful_releases_window(),
+            self.get_select_rollback_version_window(),
+            self.get_confirm_rollback_window(),
         )
 
     def get_view_successful_releases_window(self) -> Window:
@@ -73,6 +75,12 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
 
             Column(
                 Button(
+                    Const("⏪ Откатить"),
+                    id="rollback_release",
+                    on_click=self.successful_releases_service.handle_rollback_click,
+                    when="has_releases",
+                ),
+                Button(
                     Const("🔄 Обновить"),
                     id="refresh",
                     on_click=self.successful_releases_service.handle_refresh,
@@ -87,5 +95,70 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
 
             state=model.SuccessfulReleasesStates.view_releases,
             getter=self.successful_releases_getter.get_releases_data,
+            parse_mode=SULGUK_PARSE_MODE,
+        )
+
+    def get_select_rollback_version_window(self) -> Window:
+        return Window(
+            Multi(
+                Const("⏪ <b>Выбор версии для отката</b><br><br>"),
+                Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                Format("🏷️ <b>Текущая версия:</b> <code>{current_version}</code><br><br>"),
+                Const("📋 <b>Выберите версию для отката:</b><br>"),
+                Const("<i>Показаны последние 3 успешных релиза</i>"),
+                sep="",
+            ),
+
+            Group(
+                Select(
+                    Format("🏷️ {item[release_version]} ({item[deployed_at_formatted]})"),
+                    id="rollback_version_select",
+                    items="available_versions",
+                    item_id_getter=lambda item: str(item["id"]),
+                    on_click=self.successful_releases_service.handle_version_selected,
+                ),
+                width=1,
+            ),
+
+            Button(
+                Const("❌ Отмена"),
+                id="cancel_rollback",
+                on_click=lambda c, b, d: d.switch_to(model.SuccessfulReleasesStates.view_releases),
+            ),
+
+            state=model.SuccessfulReleasesStates.select_rollback_version,
+            getter=self.successful_releases_getter.get_rollback_versions_data,
+            parse_mode=SULGUK_PARSE_MODE,
+        )
+
+    def get_confirm_rollback_window(self) -> Window:
+        return Window(
+            Multi(
+                Const("⚠️ <b>Подтверждение отката</b><br><br>"),
+                Const("❗ <b>ВНИМАНИЕ!</b> Вы собираетесь откатить релиз!<br><br>"),
+                Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                Format("🏷️ <b>Текущая версия:</b> <code>{current_version}</code><br>"),
+                Format("⏪ <b>Откатить на:</b> <code>{target_version}</code><br>"),
+                Format("📅 <b>Дата деплоя выбранной версии:</b> <code>{target_deployed_at}</code><br><br>"),
+                Const("⚠️ <i>Это действие приведет к откату сервиса на выбранную версию.</i><br>"),
+                Const("⚠️ <i>Убедитесь, что откат действительно необходим!</i>"),
+                sep="",
+            ),
+
+            Row(
+                Button(
+                    Const("✅ Да, откатить"),
+                    id="confirm_rollback_yes",
+                    on_click=self.successful_releases_service.handle_confirm_rollback,
+                ),
+                Button(
+                    Const("❌ Отмена"),
+                    id="cancel_rollback_confirm",
+                    on_click=lambda c, b, d: d.switch_to(model.SuccessfulReleasesStates.view_releases),
+                ),
+            ),
+
+            state=model.SuccessfulReleasesStates.confirm_rollback,
+            getter=self.successful_releases_getter.get_rollback_confirm_data,
             parse_mode=SULGUK_PARSE_MODE,
         )

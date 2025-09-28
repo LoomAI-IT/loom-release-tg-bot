@@ -99,6 +99,54 @@ class ReleaseService(interface.IReleaseService):
                 span.set_status(Status(StatusCode.ERROR, str(err)))
                 raise err
 
+    async def get_active_release(self) -> list[model.Release]:
+        with self.tracer.start_as_current_span(
+                "ReleaseService.get_active_release",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                releases = await self.release_repo.get_active_release()
+
+                span.set_status(Status(StatusCode.OK))
+                return releases
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(Status(StatusCode.ERROR, str(err)))
+                raise err
+
+    async def get_successful_releases(self) -> list[model.Release]:
+        with self.tracer.start_as_current_span(
+                "ReleaseService.get_successful_releases",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                releases = await self.release_repo.get_successful_releases( )
+
+                span.set_status(Status(StatusCode.OK))
+                return releases
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(Status(StatusCode.ERROR, str(err)))
+                raise err
+
+    async def get_failed_releases(self) -> list[model.Release]:
+        with self.tracer.start_as_current_span(
+                "ReleaseService.get_failed_releases",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                releases = await self.release_repo.get_failed_releases()
+
+                span.set_status(Status(StatusCode.OK))
+                return releases
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(Status(StatusCode.ERROR, str(err)))
+                raise err
+
     async def rollback_to_tag(
             self,
             service_name: str,

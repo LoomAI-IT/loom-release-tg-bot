@@ -84,6 +84,91 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                 span.set_status(Status(StatusCode.ERROR, str(err)))
                 raise err
 
+    async def get_rollback_versions_data(
+            self,
+            dialog_manager: DialogManager,
+            **kwargs
+    ) -> dict:
+        """Получает данные для окна выбора версии отката"""
+        with self.tracer.start_as_current_span(
+                "SuccessfulReleasesGetter.get_rollback_versions_data",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                # Получаем текущий релиз и доступные версии из dialog_data
+                current_release = dialog_manager.dialog_data.get("rollback_current_release", {})
+                available_versions = dialog_manager.dialog_data.get("available_rollback_versions", [])
+
+                # Форматируем данные версий для отображения
+                formatted_versions = []
+                for version in available_versions:
+                    formatted_version = {
+                        "id": version.get("id"),
+                        "release_version": version.get("release_version"),
+                        "deployed_at_formatted": self._format_datetime(version.get("completed_at")),
+                        "initiated_by": version.get("initiated_by"),
+                    }
+                    formatted_versions.append(formatted_version)
+
+                data = {
+                    "service_name": current_release.get("service_name", "Неизвестно"),
+                    "current_version": current_release.get("release_version", "Неизвестно"),
+                    "available_versions": formatted_versions,
+                    "has_versions": len(formatted_versions) > 0,
+                }
+
+                self.logger.info(
+                    f"Загружены версии для отката: {len(formatted_versions)} версий"
+                )
+
+                span.set_status(Status(StatusCode.OK))
+                return data
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(Status(StatusCode.ERROR, str(err)))
+                self.logger.error(f"Ошибка при получении версий для отката: {str(err)}")
+                raise err
+
+    async def get_rollback_confirm_data(
+            self,
+            dialog_manager: DialogManager,
+            **kwargs
+    ) -> dict:
+        """Получает данные для окна подтверждения отката"""
+        with self.tracer.start_as_current_span(
+                "SuccessfulReleasesGetter.get_rollback_confirm_data",
+                kind=SpanKind.INTERNAL
+        ) as span:
+            try:
+                # Получаем данные из dialog_data
+                current_release = dialog_manager.dialog_data.get("rollback_current_release", {})
+                target_version = dialog_manager.dialog_data.get("rollback_target_version", {})
+
+                data = {
+                    "service_name": current_release.get("service_name", "Неизвестно"),
+                    "current_version": current_release.get("release_version", "Неизвестно"),
+                    "target_version": target_version.get("release_version", "Неизвестно"),
+                    "target_deployed_at": self._format_datetime(
+                        target_version.get("completed_at")
+                    ),
+                    "target_initiated_by": target_version.get("initiated_by", "Неизвестно"),
+                }
+
+                self.logger.info(
+                    f"Подготовка подтверждения отката: "
+                    f"{data['service_name']} с {data['current_version']} на {data['target_version']}"
+                )
+
+                span.set_status(Status(StatusCode.OK))
+                return data
+
+            except Exception as err:
+                span.record_exception(err)
+                span.set_status(Status(StatusCode.ERROR, str(err)))
+                self.logger.error(f"Ошибка при получении данных для подтверждения отката: {str(err)}")
+                raise err
+
     def _format_status(self, status: model.ReleaseStatus) -> str:
         """Форматирует статус релиза с эмодзи"""
         status_map = {
@@ -105,9 +190,28 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
             return "—"
 
         try:
+            # Обработка строкового представления datetime
             if isinstance(dt, str):
-                dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
+                # Пробуем разные форматы
+                for fmt in [
+                    "%Y-%m-%dT%H:%M:%S.%fZ",
+                    "%Y-%m-%dT%H:%M:%SZ",
+                    "%Y-%m-%dT%H:%M:%S.%f",
+                    "%Y-%m-%dT%H:%M:%S",
+                    "%Y-%m-%d %H:%M:%S.%f",
+                    "%Y-%m-%d %H:%M:%S",
+                ]:
+                    try:
+                        dt = datetime.strptime(dt, fmt)
+                        break
+                    except ValueError:
+                        continue
+
+                # Если не удалось распарсить, пробуем через fromisoformat
+                if isinstance(dt, str):
+                    dt = datetime.fromisoformat(dt.replace('Z', '+00:00'))
 
             return dt.strftime("%d.%m.%Y %H:%M")
-        except Exception:
+        except Exception as e:
+            self.logger.warning(f"Ошибка форматирования даты: {e}, исходное значение: {dt}")
             return str(dt)

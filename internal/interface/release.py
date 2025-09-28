@@ -41,6 +41,15 @@ class IReleaseService(Protocol):
         pass
 
     @abstractmethod
+    async def get_active_release(self) -> list[model.Release]: pass
+
+    @abstractmethod
+    async def get_successful_releases(self) -> list[model.Release]: pass
+
+    @abstractmethod
+    async def get_failed_releases(self) -> list[model.Release]: pass
+
+    @abstractmethod
     async def rollback_to_tag(
             self,
             service_name: str,

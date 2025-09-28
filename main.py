@@ -129,6 +129,7 @@ active_release_service = ActiveReleaseService(
 
 successful_releases_service = SuccessfulReleasesService(
     tel,
+    release_service
 )
 
 failed_releases_service = FailedReleasesService(

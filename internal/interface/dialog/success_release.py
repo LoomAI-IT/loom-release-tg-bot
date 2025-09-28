@@ -13,6 +13,14 @@ class ISuccessfulReleasesDialog(Protocol):
     def get_view_successful_releases_window(self) -> Window:
         pass
 
+    @abstractmethod
+    def get_select_rollback_version_window(self) -> Window:
+        pass
+
+    @abstractmethod
+    def get_confirm_rollback_window(self) -> Window:
+        pass
+
 
 class ISuccessfulReleasesService(Protocol):
     @abstractmethod
@@ -42,10 +50,52 @@ class ISuccessfulReleasesService(Protocol):
     ) -> None:
         pass
 
+    @abstractmethod
+    async def handle_rollback_click(
+            self,
+            callback: CallbackQuery,
+            button: Any,
+            dialog_manager: DialogManager
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def handle_version_selected(
+            self,
+            callback: CallbackQuery,
+            widget: Any,
+            dialog_manager: DialogManager,
+            item_id: str
+    ) -> None:
+        pass
+
+    @abstractmethod
+    async def handle_confirm_rollback(
+            self,
+            callback: CallbackQuery,
+            button: Any,
+            dialog_manager: DialogManager
+    ) -> None:
+        pass
+
 
 class ISuccessfulReleasesGetter(Protocol):
     @abstractmethod
     async def get_releases_data(
+            self,
+            dialog_manager: DialogManager,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    async def get_rollback_versions_data(
+            self,
+            dialog_manager: DialogManager,
+    ) -> dict:
+        pass
+
+    @abstractmethod
+    async def get_rollback_confirm_data(
             self,
             dialog_manager: DialogManager,
     ) -> dict:

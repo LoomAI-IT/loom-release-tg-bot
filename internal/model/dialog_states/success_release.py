@@ -3,3 +3,5 @@ from aiogram.fsm.state import StatesGroup, State
 
 class SuccessfulReleasesStates(StatesGroup):
     view_releases = State()
+    select_rollback_version = State()
+    confirm_rollback = State()
