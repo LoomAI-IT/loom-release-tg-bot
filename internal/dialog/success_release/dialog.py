@@ -1,3 +1,4 @@
+from aiogram import F
 from aiogram_dialog import Window, Dialog
 from aiogram_dialog.widgets.text import Const, Format, Case, Multi
 from aiogram_dialog.widgets.kbd import Button, Column, Row, Select, Group
@@ -78,7 +79,7 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                     Const("⏪ Откатить"),
                     id="rollback_release",
                     on_click=self.successful_releases_service.handle_rollback_click,
-                    when="has_releases",
+                    when="has_rollback",
                 ),
                 Button(
                     Const("🔄 Обновить"),
@@ -133,16 +134,41 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
 
     def get_confirm_rollback_window(self) -> Window:
         return Window(
-            Multi(
-                Const("⚠️ <b>Подтверждение отката</b><br><br>"),
-                Const("❗ <b>ВНИМАНИЕ!</b> Вы собираетесь откатить релиз!<br><br>"),
-                Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                Format("🏷️ <b>Текущая версия:</b> <code>{current_version}</code><br>"),
-                Format("⏪ <b>Откатить на:</b> <code>{target_version}</code><br>"),
-                Format("📅 <b>Дата деплоя выбранной версии:</b> <code>{target_deployed_at}</code><br><br>"),
-                Const("⚠️ <i>Это действие приведет к откату сервиса на выбранную версию.</i><br>"),
-                Const("⚠️ <i>Убедитесь, что откат действительно необходим!</i>"),
-                sep="",
+            Case(
+                {
+                    True: Multi(
+                        Const("⚠️ <b>Подтверждение отката</b><br><br>"),
+                        Const("❗ <b>ВНИМАНИЕ!</b> Вы собираетесь откатить релиз!<br><br>"),
+                        Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                        Format("🏷️ <b>Текущая версия:</b> <code>{current_version}</code><br>"),
+                        Format("⏪ <b>Откатить на:</b> <code>{target_version}</code><br>"),
+                        Format("📅 <b>Дата деплоя выбранной версии:</b> <code>{target_deployed_at}</code><br><br>"),
+                        Const("⚠️ <i>Это действие приведет к откату сервиса на выбранную версию.</i><br>"),
+                        Const("⚠️ <i>Убедитесь, что откат действительно необходим!</i>"),
+                        sep="",
+                    ),
+                    False: Const("")
+                },
+                selector="has_not_run_rollback"
+            ),
+            Case(
+                {
+                    True: Const("Выполняю релиз"),
+                    False: Const(""),
+                },
+                selector="has_run_rollback"
+            ),
+
+            Case(
+                {
+                    True: Multi(
+                        Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                        Format("🏷️ <b>Прошлая версия:</b> <code>{prev_version}</code><br>"),
+                        Format("⏪ <b>Текущая версия:</b> <code>{current_version}</code><br>"),
+                    ),
+                    False: Const("")
+                },
+                selector="has_done_rollback"
             ),
 
             Row(
@@ -150,12 +176,20 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                     Const("✅ Да, откатить"),
                     id="confirm_rollback_yes",
                     on_click=self.successful_releases_service.handle_confirm_rollback,
+                    when="has_not_run_rollback"
                 ),
                 Button(
                     Const("❌ Отмена"),
                     id="cancel_rollback_confirm",
                     on_click=lambda c, b, d: d.switch_to(model.SuccessfulReleasesStates.view_releases),
+                    when="has_not_run_rollback"
                 ),
+            ),
+            Button(
+                Const("Назад"),
+                id="back_view_releases",
+                on_click=lambda c, b, d: d.switch_to(model.SuccessfulReleasesStates.view_releases),
+                when="has_done_rollback"
             ),
 
             state=model.SuccessfulReleasesStates.confirm_rollback,

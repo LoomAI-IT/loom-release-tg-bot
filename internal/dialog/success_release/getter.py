@@ -71,6 +71,7 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                     "current_index": current_index + 1,
                     "has_prev": current_index > 0,
                     "has_next": current_index < len(releases) - 1,
+                    "has_rollback": bool(current_release.rollback_to_version),
                     **release_data,
                 }
 
