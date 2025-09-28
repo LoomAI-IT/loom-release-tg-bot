@@ -17,7 +17,7 @@ class Config:
         self.prod_host: str = os.environ.get("PROD_HOST")
         self.prod_password: str = os.environ.get("PROD_PASSWORD")
         self.loom_release_tg_bot_api_url: str = os.environ.get("LOOM_RELEASE_TG_BOT_API_URL")
-        self.required_approve_list = ["menazovutstas", "gommgo"]
+        self.required_approve_list = ["gommgo"]
         self.admins = ["gommgo"]
 
         self.service_port_map = {
