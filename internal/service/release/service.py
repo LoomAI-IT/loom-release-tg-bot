@@ -1,3 +1,4 @@
+import io
 import time
 
 import asyncssh
@@ -168,8 +169,11 @@ class ReleaseService(interface.IReleaseService):
             )
 
             # Асинхронно записываем скрипт на сервер
+            script_bytes = io.BytesIO(rollback_script.encode('utf-8'))
+
+            # Upload the script to the server
             async with conn.start_sftp_client() as sftp:
-                await sftp.put(rollback_script.encode(), script_file)
+                await sftp.put(script_bytes, script_file)
 
             # Делаем скрипт исполняемым и запускаем в фоне
             command = f"chmod +x {script_file} && nohup bash {script_file} > /dev/null 2>&1 & echo $!"
