@@ -257,18 +257,17 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                         "target_version": target_tag,
                     }
                 )
-
-                # Вызываем метод отката
-                await self.release_service.rollback_to_tag(
-                    service_name=service_name,
-                    target_tag=target_tag
-                )
-
                 # Показываем уведомление об успешном запуске отката
                 await callback.answer(
                     f"✅ Откат на версию {target_tag} запущен!\n"
                     f"Процесс может занять несколько минут.",
                     show_alert=True
+                )
+
+                # Вызываем метод отката
+                await self.release_service.rollback_to_tag(
+                    service_name=service_name,
+                    target_tag=target_tag
                 )
 
                 # Очищаем данные отката
