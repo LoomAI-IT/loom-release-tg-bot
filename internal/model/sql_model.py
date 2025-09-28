@@ -3,6 +3,7 @@ CREATE TABLE IF NOT EXISTS releases (
     id SERIAL PRIMARY KEY,
     service_name TEXT NOT NULL,
     release_version TEXT NOT NULL,
+    rollback_to_version TEXT DEFAULT '',
     status TEXT NOT NULL,
     
     initiated_by TEXT NOT NULL,

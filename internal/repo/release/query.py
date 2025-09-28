@@ -27,14 +27,18 @@ WHERE status IN (
     'building',
     'manual_testing',
     'manual_test_passed',
-    'deploying'
+    'deploying',
+    'rollback'
 )
 ORDER BY created_at DESC;
 """
 
 get_successful_releases = """
 SELECT * FROM releases
-WHERE status = 'deployed'
+WHERE status IN (
+    'deployed',
+    'rollback_done'
+)
 ORDER BY created_at DESC;
 """
 
@@ -43,7 +47,8 @@ SELECT * FROM releases
 WHERE status IN (
     'staging_failed',
     'manual_test_failed',
-    'production_failed'
+    'production_failed',
+    'rollback_failed',
 )
 ORDER BY created_at DESC;
 """

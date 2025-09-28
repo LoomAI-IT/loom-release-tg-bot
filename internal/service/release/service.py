@@ -76,6 +76,7 @@ class ReleaseService(interface.IReleaseService):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
+            rollback_to_version: str = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseService.update_release",
@@ -91,6 +92,7 @@ class ReleaseService(interface.IReleaseService):
                     status=status,
                     github_run_id=github_run_id,
                     github_action_link=github_action_link,
+                    rollback_to_version=rollback_to_version,
                 )
 
                 span.set_status(Status(StatusCode.OK))

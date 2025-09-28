@@ -50,6 +50,7 @@ class ReleaseRepo(interface.IReleaseRepo):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
+            rollback_to_version: str = None,
     ) -> None:
         with self.tracer.start_as_current_span(
                 "ReleaseRepo.update_release",
@@ -73,6 +74,10 @@ class ReleaseRepo(interface.IReleaseRepo):
                 if github_action_link is not None:
                     update_fields.append("github_action_link = :github_action_link")
                     args['github_action_link'] = github_action_link
+
+                if rollback_to_version is not None:
+                    update_fields.append("rollback_to_version = :rollback_to_version")
+                    args['rollback_to_version'] = rollback_to_version
 
                 if not update_fields:
                     span.set_status(Status(StatusCode.OK))

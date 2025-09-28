@@ -16,12 +16,17 @@ class ReleaseStatus(Enum):
     DEPLOYED = "deployed"
     PRODUCTION_FAILED = "production_failed"
 
+    ROLLBACK = "rollback"
+    ROLLBACK_FAILED = "rollback_failed"
+    ROLLBACK_DONE = "rollback_done"
+
 
 @dataclass
 class Release:
     id: int
     service_name: str
     release_version: str
+    rollback_to_version: str
     status: ReleaseStatus
 
     initiated_by: str
@@ -40,6 +45,7 @@ class Release:
                 id=row.id,
                 service_name=row.service_name,
                 release_version=row.release_version,
+                rollback_to_version=row.rollback_to_version,
                 status=ReleaseStatus(row.status),
                 initiated_by=row.initiated_by,
                 github_run_id=row.github_run_id,
@@ -57,6 +63,7 @@ class Release:
             'id': self.id,
             'service_name': self.service_name,
             'release_version': self.release_version,
+            'rollback_to_version': self.rollback_to_version,
             'status': self.status.value,  # assuming ReleaseStatus is an enum
             'initiated_by': self.initiated_by,
             'github_run_id': self.github_run_id,

@@ -249,15 +249,13 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                 service_name = current_release.get("service_name")
                 target_tag = target_version.get("release_version")
 
-                self.logger.info(
-                    f"Начинаем откат сервиса {service_name} на версию {target_tag}",
-                    {
-                        "service_name": service_name,
-                        "current_version": current_release.get("release_version"),
-                        "target_version": target_tag,
-                    }
+                self.logger.info(f"Начинаем откат сервиса {service_name} на версию {target_tag}")
+
+                await self.release_service.update_release(
+                    release_id=current_release.get("id"),
+                    rollback_to_version=target_tag
                 )
-                # Показываем уведомление об успешном запуске отката
+
                 await callback.answer(
                     f"✅ Откат на версию {target_tag} запущен!\n"
                     f"Процесс может занять несколько минут.",
@@ -278,17 +276,12 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                 # Возвращаемся к списку успешных релизов
                 await dialog_manager.switch_to(model.SuccessfulReleasesStates.view_releases)
 
-                self.logger.info(
-                    f"Откат сервиса {service_name} на версию {target_tag} успешно инициирован"
-                )
+                self.logger.info(f"Откат сервиса {service_name} на версию {target_tag} успешно инициирован")
                 span.set_status(Status(StatusCode.OK))
 
             except Exception as err:
                 span.record_exception(err)
                 span.set_status(Status(StatusCode.ERROR, str(err)))
 
-                error_message = f"❌ Ошибка при откате: {str(err)}"
-                self.logger.error(error_message, {"error": str(err)})
-
-                await callback.answer(error_message[:200], show_alert=True)
+                await callback.answer("Ошибка", show_alert=True)
                 raise err

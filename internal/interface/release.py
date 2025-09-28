@@ -37,6 +37,7 @@ class IReleaseService(Protocol):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
+            rollback_to_version: str = None,
     ) -> None:
         pass
 
@@ -78,6 +79,7 @@ class IReleaseRepo(Protocol):
             status: model.ReleaseStatus = None,
             github_run_id: str = None,
             github_action_link: str = None,
+            rollback_to_version: str = None,
     ) -> None:
         pass
 
