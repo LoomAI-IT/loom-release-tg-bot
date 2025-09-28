@@ -153,11 +153,14 @@ class ActiveReleaseService(interface.IActiveReleaseService):
                     return
 
 
-                if len(current_approved_list) == len(self.required_approve_list):
+                if len(current_approved_list) == len(self.required_approve_list) - 1:
                     # Все подтверждения собраны - переводим в статус "тест пройден" и запускаем деплой
+                    current_approved_list.append(approver_username)
+
                     await self.release_service.update_release(
                         release_id=release_id,
-                        status=model.ReleaseStatus.MANUAL_TEST_PASSED
+                        status=model.ReleaseStatus.MANUAL_TEST_PASSED,
+                        approved_list=current_approved_list,
                     )
 
                     # Запускаем GitHub workflow для деплоя на продакшн
