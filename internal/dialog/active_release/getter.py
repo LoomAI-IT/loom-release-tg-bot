@@ -184,7 +184,8 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
 
         approved_list_text = ""
         for user in approved_list:
-            required_approve_list_text += f"@{user}<br>"
+            approved_list_text += f"@{user}<br>"
+
         if not approved_list_text:
             approved_list_text = "Никто еще не подтвердил"
 
