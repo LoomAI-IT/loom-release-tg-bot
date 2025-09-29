@@ -30,13 +30,13 @@ class Config:
         }
 
         self.service_prefix_map = {
-            os.getenv("LOOM_TG_BOT_CONTAINER_NAME"): int(os.getenv("LOOM_TG_BOT_PREFIX")),
-            os.getenv("LOOM_ACCOUNT_CONTAINER_NAME"): int(os.getenv("LOOM_ACCOUNT_PREFIX")),
-            os.getenv("LOOM_AUTHORIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_AUTHORIZATION_PREFIX")),
-            os.getenv("LOOM_EMPLOYEE_CONTAINER_NAME"): int(os.getenv("LOOM_EMPLOYEE_PREFIX")),
-            os.getenv("LOOM_ORGANIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_ORGANIZATION_PREFIX")),
-            os.getenv("LOOM_CONTENT_CONTAINER_NAME"): int(os.getenv("LOOM_CONTENT_PREFIX")),
-            os.getenv("LOOM_RELEASE_TG_BOT_CONTAINER_NAME"): int(os.getenv("LOOM_RELEASE_TG_BOT_PREFIX")),
+            os.getenv("LOOM_TG_BOT_CONTAINER_NAME"): os.getenv("LOOM_TG_BOT_PREFIX"),
+            os.getenv("LOOM_ACCOUNT_CONTAINER_NAME"): os.getenv("LOOM_ACCOUNT_PREFIX"),
+            os.getenv("LOOM_AUTHORIZATION_CONTAINER_NAME"): os.getenv("LOOM_AUTHORIZATION_PREFIX"),
+            os.getenv("LOOM_EMPLOYEE_CONTAINER_NAME"): os.getenv("LOOM_EMPLOYEE_PREFIX"),
+            os.getenv("LOOM_ORGANIZATION_CONTAINER_NAME"): os.getenv("LOOM_ORGANIZATION_PREFIX"),
+            os.getenv("LOOM_CONTENT_CONTAINER_NAME"): os.getenv("LOOM_CONTENT_PREFIX"),
+            os.getenv("LOOM_RELEASE_TG_BOT_CONTAINER_NAME"): os.getenv("LOOM_RELEASE_TG_BOT_PREFIX"),
         }
 
         self.interserver_secret_key = os.getenv("LOOM_INTERSERVER_SECRET_KEY")
