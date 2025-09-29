@@ -29,11 +29,13 @@ get_active_releases = """
 SELECT * FROM releases
 WHERE status IN (
     'initiated',
-    'building',
+    'initiated',
+    'stage_building',
+    'stage_test_rollback',
     'manual_testing',
     'manual_test_passed',
     'deploying',
-    'rollback'
+    'production_rollback'
 )
 ORDER BY created_at DESC;
 """

@@ -20,7 +20,7 @@ class ReleaseStatus(Enum):
     DEPLOYED = "deployed"
     PRODUCTION_FAILED = "production_failed"
 
-    ROLLBACK = "rollback"
+    ROLLBACK = "production_rollback"
     ROLLBACK_FAILED = "rollback_failed"
     ROLLBACK_DONE = "rollback_done"
 
