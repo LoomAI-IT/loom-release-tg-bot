@@ -209,7 +209,7 @@ class ReleaseService(interface.IReleaseService):
             target_tag: str,
             system_repo: str
     ) -> str:
-        prefix = self.service_prefix_map[service_name.replace("loom-", "")]
+        prefix = self.service_prefix_map[service_name]
         port = self.service_port_map[service_name]
         release_tg_bot_url = f"{self.prod_domain}{self.service_prefix_map["loom-release-tg-bot"]}"
 
