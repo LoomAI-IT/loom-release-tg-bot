@@ -116,8 +116,9 @@ release_service = ReleaseService(
     release_repo,
     cfg.prod_host,
     cfg.prod_password,
+    cfg.prod_domain,
     cfg.service_port_map,
-    cfg.loom_release_tg_bot_api_url,
+    cfg.service_prefix_map,
 )
 main_menu_service = MainMenuService(
     tel,
@@ -190,7 +191,7 @@ tg_webhook_controller = TelegramWebhookController(
     tel,
     dp,
     bot,
-    cfg.domain,
+    cfg.prod_domain,
     cfg.prefix,
 )
 

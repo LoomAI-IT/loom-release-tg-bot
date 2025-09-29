@@ -12,11 +12,11 @@ class Config:
         self.prefix = os.getenv("LOOM_RELEASE_TG_BOT_PREFIX", "/api/tg-bot")
         self.log_level = os.getenv("LOG_LEVEL", "INFO")
         self.release_tg_bot_token: str = os.environ.get('LOOM_RELEASE_TG_BOT_TOKEN')
-        self.domain: str = os.environ.get("LOOM_DOMAIN")
         self.github_token: str = os.environ.get("LOOM_GITHUB_TOKEN")
         self.prod_host: str = os.environ.get("PROD_HOST")
         self.prod_password: str = os.environ.get("PROD_PASSWORD")
-        self.loom_release_tg_bot_api_url: str = os.environ.get("LOOM_RELEASE_TG_BOT_API_URL")
+        self.prod_domain: str = os.environ.get("PROD_DOMAIN")
+
         self.required_approve_list = ["gommgo"]
         self.admins = ["gommgo"]
 
@@ -27,6 +27,16 @@ class Config:
             os.getenv("LOOM_EMPLOYEE_CONTAINER_NAME"): int(os.getenv("LOOM_EMPLOYEE_PORT")),
             os.getenv("LOOM_ORGANIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_ORGANIZATION_PORT")),
             os.getenv("LOOM_CONTENT_CONTAINER_NAME"): int(os.getenv("LOOM_CONTENT_PORT")),
+        }
+
+        self.service_prefix_map = {
+            os.getenv("LOOM_TG_BOT_CONTAINER_NAME"): int(os.getenv("LOOM_TG_BOT_PREFIX")),
+            os.getenv("LOOM_ACCOUNT_CONTAINER_NAME"): int(os.getenv("LOOM_ACCOUNT_PREFIX")),
+            os.getenv("LOOM_AUTHORIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_AUTHORIZATION_PREFIX")),
+            os.getenv("LOOM_EMPLOYEE_CONTAINER_NAME"): int(os.getenv("LOOM_EMPLOYEE_PREFIX")),
+            os.getenv("LOOM_ORGANIZATION_CONTAINER_NAME"): int(os.getenv("LOOM_ORGANIZATION_PREFIX")),
+            os.getenv("LOOM_CONTENT_CONTAINER_NAME"): int(os.getenv("LOOM_CONTENT_PREFIX")),
+            os.getenv("LOOM_RELEASE_TG_BOT_CONTAINER_NAME"): int(os.getenv("LOOM_RELEASE_TG_BOT_PREFIX")),
         }
 
         self.interserver_secret_key = os.getenv("LOOM_INTERSERVER_SECRET_KEY")
