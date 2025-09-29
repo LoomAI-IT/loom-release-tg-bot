@@ -212,7 +212,7 @@ class ReleaseService(interface.IReleaseService):
     ) -> str:
         prefix = f"/api/{service_name.replace("loom-", "")}"
         port = self.service_port_map[service_name]
-        release_tg_bot_url = f"{self.prod_domain}{self.service_prefix_map["release_tg_bot"]}"
+        release_tg_bot_url = f"{self.prod_domain}{self.service_prefix_map["release-tg-bot"]}"
 
         rollback_commands = f"""# Откат сервиса {service_name} на версию {target_tag}
 curl -s -X PATCH \
