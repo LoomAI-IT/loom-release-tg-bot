@@ -1,4 +1,3 @@
-import io
 import time
 
 import asyncssh
@@ -14,16 +13,18 @@ class ReleaseService(interface.IReleaseService):
             release_repo: interface.IReleaseRepo,
             prod_host: str,
             prod_password: str,
+            prod_domain: str,
             service_port_map: dict[str, int],
-            loom_release_tg_bot_api_url: str,
+            service_prefix_map: dict[str, str],
     ):
         self.tracer = tel.tracer()
         self.logger = tel.logger()
         self.release_repo = release_repo
         self.prod_host = prod_host
         self.prod_password = prod_password
+        self.prod_domain = prod_domain
         self.service_port_map = service_port_map
-        self.loom_release_tg_bot_api_url = loom_release_tg_bot_api_url
+        self.service_prefix_map = service_prefix_map
 
     async def create_release(
             self,
@@ -185,10 +186,11 @@ class ReleaseService(interface.IReleaseService):
             timestamp = int(time.time())
             script_file = f"/tmp/rollback_{service_name}_{target_tag}_{timestamp}.sh"
 
-            rollback_script = self._generate_rollback_command(
+            rollback_script = self._generate_prod_rollback_command(
                 release_id=release_id,
                 service_name=service_name,
                 target_tag=target_tag,
+                system_repo="loom-system"
             )
 
             # Upload the script to the server
@@ -201,7 +203,13 @@ class ReleaseService(interface.IReleaseService):
 
             await conn.run(command, check=False)
 
-    def _generate_rollback_command(self, release_id: int, service_name: str, target_tag: str) -> str:
+    def _generate_prod_rollback_command(
+            self,
+            release_id: int,
+            service_name: str,
+            target_tag: str,
+            system_repo: str
+    ) -> str:
         prefix = f"/api/{service_name.replace("loom-", "")}"
         port = self.service_port_map[service_name]
 
@@ -212,7 +220,7 @@ curl -s -X PATCH \
     "release_id": {release_id},
     "status": "rollback"
 }}' \
-"{self.loom_release_tg_bot_api_url}/release"
+"https://{self.prod_domain}{self.service_prefix_map["release_tg_bot"]}/release"
                       
 set -e
 
@@ -236,6 +244,25 @@ cd loom/{service_name}
 # 2. Сохраняем текущее состояние для проверки
 CURRENT_REF=$(git symbolic-ref --short HEAD 2>/dev/null || git describe --tags --exact-match 2>/dev/null || git rev-parse --short HEAD)
 log_message "🔍 Текущее состояние до отката: $CURRENT_REF"
+
+docker run --rm \
+    --network net \
+    -v ./:/app \
+    -w /app \
+    -e PREVIOUS_TAG={target_tag} \
+    --env-file ../${system_repo}/env/.env.app \
+    --env-file ../${system_repo}/env/.env.db \
+    --env-file ../${system_repo}/env/.env.monitoring \
+    python:3.11-slim \
+    bash -c '
+      echo "📦 Установка зависимостей..."
+      cd .github && pip install -r requirements.txt && cd ..
+      
+      echo "✅ Зависимости установлены"
+      echo "🚀 Запуск откачивания миграции..."
+      
+      python internal/migration/run.py prod --command down --version $PREVIOUS_TAG
+    ' 2>&1 | tee -a "$LOG_FILE"
 
 # 3. Обновляем репозиторий и версии
 log_message "📥 Обновляем репозиторий и теги для отката..."
@@ -276,7 +303,7 @@ git remote prune origin 2>&1 | tee -a "$LOG_FILE"
 log_message "✅ Переключение на тег {target_tag} для отката завершено"
 
 # 6. Переходим в директорию системы
-cd ../loom-system
+cd ../{system_repo}
 
 # 7. Загружаем переменные окружения
 export $(cat env/.env.app env/.env.db env/.env.monitoring | xargs)
@@ -293,7 +320,7 @@ docker images | grep {service_name} | tee -a "$LOG_FILE"
 # 8. Проверяем здоровье сервиса после отката
 check_health() {{
     # Если есть HTTP endpoint
-    if curl -f -s -o /dev/null -w "%{{http_code}}" http://localhost:{port}{prefix}/health | grep -q "200"; then
+    if curl -f -s -o /dev/null -w "%{{http_code}}" https://{self.prod_domain}:{port}{prefix}/health | grep -q "200"; then
         return 0
     else
         return 1
@@ -332,7 +359,7 @@ if [ "$SUCCESS" = false ]; then
         "release_id": {release_id},
         "status": "rollback_failed"
     }}' \
-    "{self.loom_release_tg_bot_api_url}/release"
+    "https://{self.prod_domain}{self.service_prefix_map["release_tg_bot"]}/release"
     exit 1
 fi
 
@@ -342,7 +369,7 @@ curl -s -X PATCH \
     "release_id": {release_id},
     "status": "rollback_done"
 }}' \
-"{self.loom_release_tg_bot_api_url}/release"
+"https://{self.prod_domain}{self.service_prefix_map["release_tg_bot"]}/release"
 
 log_message "🎉 Откат на тег {target_tag} завершен успешно! Сервис работает!"
 log_message "📊 Сервис: {service_name}"
