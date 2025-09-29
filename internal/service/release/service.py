@@ -183,8 +183,7 @@ class ReleaseService(interface.IReleaseService):
                 connect_timeout=30,
                 known_hosts=None
         ) as conn:
-            timestamp = int(time.time())
-            script_file = f"/tmp/rollback_{service_name}_{target_tag}_{timestamp}.sh"
+            script_file = f"/tmp/rollback_{service_name}_{target_tag}.sh"
 
             rollback_script = self._generate_prod_rollback_command(
                 release_id=release_id,
@@ -210,7 +209,7 @@ class ReleaseService(interface.IReleaseService):
             target_tag: str,
             system_repo: str
     ) -> str:
-        prefix = f"/api/{service_name.replace("loom-", "")}"
+        prefix = self.service_prefix_map[service_name.replace("loom-", "")]
         port = self.service_port_map[service_name]
         release_tg_bot_url = f"{self.prod_domain}{self.service_prefix_map["loom-release-tg-bot"]}"
 
@@ -221,7 +220,7 @@ curl -s -X PATCH \
     "release_id": {release_id},
     "status": "rollback"
 }}' \
-"https://{release_tg_bot_url}/release"
+"{release_tg_bot_url}/release"
                       
 set -e
 
@@ -251,9 +250,9 @@ docker run --rm \
     -v ./:/app \
     -w /app \
     -e PREVIOUS_TAG={target_tag} \
-    --env-file ../${system_repo}/env/.env.app \
-    --env-file ../${system_repo}/env/.env.db \
-    --env-file ../${system_repo}/env/.env.monitoring \
+    --env-file ../{system_repo}/env/.env.app \
+    --env-file ../{system_repo}/env/.env.db \
+    --env-file ../{system_repo}/env/.env.monitoring \
     python:3.11-slim \
     bash -c '
       echo "📦 Установка зависимостей..."
@@ -321,7 +320,7 @@ docker images | grep {service_name} | tee -a "$LOG_FILE"
 # 8. Проверяем здоровье сервиса после отката
 check_health() {{
     # Если есть HTTP endpoint
-    if curl -f -s -o /dev/null -w "%{{http_code}}" https://{self.prod_domain}:{port}{prefix}/health | grep -q "200"; then
+    if curl -f -s -o /dev/null -w "%{{http_code}}" {self.prod_domain}:{port}{prefix}/health | grep -q "200"; then
         return 0
     else
         return 1
@@ -360,7 +359,7 @@ if [ "$SUCCESS" = false ]; then
         "release_id": {release_id},
         "status": "rollback_failed"
     }}' \
-    "https://{release_tg_bot_url}/release"
+    "{release_tg_bot_url}/release"
     exit 1
 fi
 
@@ -370,7 +369,7 @@ curl -s -X PATCH \
     "release_id": {release_id},
     "status": "rollback_done"
 }}' \
-"https://{release_tg_bot_url}/release"
+"{release_tg_bot_url}/release"
 
 log_message "🎉 Откат на тег {target_tag} завершен успешно! Сервис работает!"
 log_message "📊 Сервис: {service_name}"
