@@ -70,7 +70,7 @@ class ActiveReleaseGetter(interface.IActiveReleaseGetter):
                 # Форматируем данные релиза
                 release_data = {
                     "service_name": current_release.service_name,
-                    "release": current_release.release_tag,
+                    "release_tag": current_release.release_tag,
                     "rollback_to_tag": current_release.rollback_to_tag,
                     "status_text": self._format_status(current_release.status),
                     "initiated_by": current_release.initiated_by,
