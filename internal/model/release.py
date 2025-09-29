@@ -6,8 +6,11 @@ from enum import Enum
 
 class ReleaseStatus(Enum):
     INITIATED = "initiated"
-    BUILDING = "building"
-    STAGING_FAILED = "staging_failed"
+
+    STAGE_BUILDING = "stage_building"
+    STAGE_BUILDING_FAILED = "stage_building_failed"
+    STAGE_TEST_ROLLBACK = "stage_test_rollback"
+    STAGE_ROLLBACK_TEST_FAILED = "stage_test_rollback_failed"
 
     MANUAL_TESTING = "manual_testing"
     MANUAL_TEST_PASSED = "manual_test_passed"
