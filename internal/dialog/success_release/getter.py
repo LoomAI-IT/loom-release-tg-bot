@@ -176,17 +176,23 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
         """Форматирует статус релиза с эмодзи"""
         status_map = {
             model.ReleaseStatus.INITIATED: "🔵 Инициирован",
-            model.ReleaseStatus.BUILDING: "🔨 Сборка",
-            model.ReleaseStatus.STAGING_FAILED: "❌ Ошибка на stage",
+
+            model.ReleaseStatus.STAGE_BUILDING: "🔨 Сборка stage",
+            model.ReleaseStatus.STAGE_BUILDING_FAILED: "❌ Ошибка сборки stage",
+            model.ReleaseStatus.STAGE_TEST_ROLLBACK: "🔄 Тестовый откат на stage",
+            model.ReleaseStatus.STAGE_ROLLBACK_TEST_FAILED: "❌ Ошибка тестового отката",
+
             model.ReleaseStatus.MANUAL_TESTING: "🧪 Ручное тестирование",
             model.ReleaseStatus.MANUAL_TEST_PASSED: "✅ Тест пройден",
-            model.ReleaseStatus.MANUAL_TEST_FAILED: "❌ Отклонен",
+            model.ReleaseStatus.MANUAL_TEST_FAILED: "❌ Тест отклонен",
+
             model.ReleaseStatus.DEPLOYING: "🚀 Деплой",
             model.ReleaseStatus.DEPLOYED: "✅ Задеплоен",
             model.ReleaseStatus.PRODUCTION_FAILED: "❌ Ошибка на prod",
-            model.ReleaseStatus.ROLLBACK: "Откатат",
-            model.ReleaseStatus.ROLLBACK_FAILED: "Ошибка отката",
-            model.ReleaseStatus.ROLLBACK_DONE: "Успешный откат",
+
+            model.ReleaseStatus.ROLLBACK: "⏪ Откат",
+            model.ReleaseStatus.ROLLBACK_FAILED: "❌ Ошибка отката",
+            model.ReleaseStatus.ROLLBACK_DONE: "✅ Успешный откат",
         }
         return status_map.get(status, status.value if hasattr(status, 'value') else str(status))
 
