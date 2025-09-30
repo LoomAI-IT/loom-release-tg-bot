@@ -53,6 +53,7 @@ get_failed_releases = """
 SELECT * FROM releases
 WHERE status IN (
     'stage_building_failed',
+    'stage_test_rollback_failed',
     'manual_test_failed',
     'production_failed',
     'rollback_failed'
