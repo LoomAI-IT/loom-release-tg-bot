@@ -52,7 +52,7 @@ ORDER BY created_at DESC;
 get_failed_releases = """
 SELECT * FROM releases
 WHERE status IN (
-    'staging_failed',
+    'stage_building_failed',
     'manual_test_failed',
     'production_failed',
     'rollback_failed'
