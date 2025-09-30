@@ -117,7 +117,6 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                         Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
                         Format("🏷️ <b>Текущий tag:</b> <code>{current_tag}</code><br><br>"),
                         Const("📋 <b>Выберите версию для отката:</b><br>"),
-                        Const("<i>Показаны последние 3 успешных релиза</i>"),
                         sep="",
                     ),
                     False: Const("Нет релизов для отката")

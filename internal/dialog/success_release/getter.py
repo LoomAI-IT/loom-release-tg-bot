@@ -97,30 +97,55 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                 kind=SpanKind.INTERNAL
         ) as span:
             try:
-                # Получаем текущий релиз и доступные версии из dialog_data
+                # Получаем текущий релиз
                 current_release = dialog_manager.dialog_data.get("rollback_current_release", {})
-                available_releases = dialog_manager.dialog_data.get("available_rollback_releases", [])
+                service_name = current_release.get("service_name")
+                current_release_id = current_release.get("id")
+
+                if not service_name:
+                    self.logger.warning("Не указано имя сервиса для отката")
+                    return {
+                        "service_name": "Неизвестно",
+                        "current_tag": current_release.get("release_tag", "Неизвестно"),
+                        "available_releases": [],
+                        "has_releases": False,
+                    }
+
+                # Получаем все успешные релизы для данного сервиса
+                all_releases = await self.release_repo.get_successful_releases()
+
+                # Фильтруем по имени сервиса и исключаем текущий релиз
+                service_releases = [
+                    release for release in all_releases
+                    if release.service_name == service_name and
+                       release.id != current_release_id and
+                       release.release_tag != current_release.get("release_tag")
+                ]
+
+                # Берем только один предыдущий релиз (самый последний перед текущим)
+                available_releases = service_releases[:1] if service_releases else []
 
                 # Форматируем данные версий для отображения
                 formatted_releases = []
                 for release in available_releases:
                     formatted_release = {
-                        "id": release.get("id"),
-                        "release_tag": release.get("release_tag"),
-                        "deployed_at_formatted": self._format_datetime(release.get("completed_at")),
-                        "initiated_by": release.get("initiated_by"),
+                        "id": release.id,
+                        "release_tag": release.release_tag,
+                        "deployed_at_formatted": self._format_datetime(release.completed_at),
+                        "initiated_by": release.initiated_by,
                     }
                     formatted_releases.append(formatted_release)
 
                 data = {
-                    "service_name": current_release.get("service_name", "Неизвестно"),
+                    "service_name": service_name,
                     "current_tag": current_release.get("release_tag", "Неизвестно"),
                     "available_releases": formatted_releases,
                     "has_releases": len(formatted_releases) > 0,
                 }
 
                 self.logger.info(
-                    f"Загружены версии для отката: {len(formatted_releases)} версий"
+                    f"Загружены версии для отката сервиса '{service_name}': "
+                    f"{len(formatted_releases)} версий"
                 )
 
                 span.set_status(Status(StatusCode.OK))
