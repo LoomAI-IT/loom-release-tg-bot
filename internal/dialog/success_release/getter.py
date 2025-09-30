@@ -123,29 +123,25 @@ class SuccessfulReleasesGetter(interface.ISuccessfulReleasesGetter):
                 ]
 
                 # Берем только один предыдущий релиз (самый последний перед текущим)
-                available_releases = service_releases[:1] if service_releases else []
+                available_releases = dialog_manager.dialog_data.get("available_rollback_release", {})
 
                 # Форматируем данные версий для отображения
-                formatted_releases = []
-                for release in available_releases:
-                    formatted_release = {
-                        "id": release.id,
-                        "release_tag": release.release_tag,
-                        "deployed_at_formatted": self._format_datetime(release.completed_at),
-                        "initiated_by": release.initiated_by,
-                    }
-                    formatted_releases.append(formatted_release)
+
+                formatted_release = {
+                    "id": available_releases.get("id"),
+                    "release_tag": available_releases.get("release_tag"),
+                    "deployed_at_formatted": self._format_datetime(available_releases.get("completed_at")),
+                    "initiated_by": available_releases.get("initiated_by"),
+                }
 
                 data = {
                     "service_name": service_name,
                     "current_tag": current_release.get("release_tag", "Неизвестно"),
-                    "available_releases": formatted_releases,
-                    "has_releases": len(formatted_releases) > 0,
+                    "available_releases": [formatted_release],
                 }
 
                 self.logger.info(
                     f"Загружены версии для отката сервиса '{service_name}': "
-                    f"{len(formatted_releases)} версий"
                 )
 
                 span.set_status(Status(StatusCode.OK))

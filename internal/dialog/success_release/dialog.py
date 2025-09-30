@@ -110,18 +110,12 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
 
     def get_select_rollback_tag_window(self) -> Window:
         return Window(
-            Case(
-                {
-                    True: Multi(
-                        Const("⏪ <b>Выбор tag для отката</b><br><br>"),
-                        Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
-                        Format("🏷️ <b>Текущий tag:</b> <code>{current_tag}</code><br><br>"),
-                        Const("📋 <b>Выберите версию для отката:</b><br>"),
-                        sep="",
-                    ),
-                    False: Const("Нет релизов для отката")
-                },
-                selector="has_releases"
+            Multi(
+                Const("⏪ <b>Выбор tag для отката</b><br><br>"),
+                Format("📦 <b>Сервис:</b> <code>{service_name}</code><br>"),
+                Format("🏷️ <b>Текущий tag:</b> <code>{current_tag}</code><br><br>"),
+                Const("📋 <b>Выберите версию для отката:</b><br>"),
+                sep="",
             ),
 
             Group(
@@ -133,7 +127,6 @@ class SuccessfulReleasesDialog(interface.ISuccessfulReleasesDialog):
                     on_click=self.successful_releases_service.handle_tag_selected,
                 ),
                 width=1,
-                when="has_releases"
             ),
 
             Button(

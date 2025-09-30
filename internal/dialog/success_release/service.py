@@ -158,9 +158,11 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
 
                 # Фильтруем по сервису и берем последние 3 (исключая текущий)
                 service_releases = [
-                    r for r in all_successful_releases
-                    if r.service_name == service_name and r.id != current_release.get("id")
-                ][:3]
+                    release for release in all_successful_releases
+                    if release.service_name == service_name and
+                       release.id != current_release.get("id") and
+                       release.release_tag != current_release.get("release_tag")
+                ]
 
                 if not service_releases:
                     await callback.answer(
@@ -170,9 +172,7 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                     return
 
                 # Сохраняем доступные версии для отката
-                dialog_manager.dialog_data["available_rollback_releases"] = [
-                    r.to_dict() for r in service_releases
-                ]
+                dialog_manager.dialog_data["available_rollback_releases"] = service_releases[0].to_dict()
 
                 # Переходим к выбору версии
                 await dialog_manager.switch_to(model.SuccessfulReleasesStates.select_rollback_tag)
