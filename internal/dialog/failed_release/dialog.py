@@ -32,16 +32,7 @@ class FailedReleasesDialog(interface.IFailedReleasesDialog):
                     {
                         True: Multi(
                             Format("📦 <b>{service_name}</b><br>"),
-                            Case(
-                                {
-                                    False: Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
-                                    True: Multi(
-                                        Format("🏷️ <b>Был откачан до:</b> <code>{rollback_to_tag}</code><br>"),
-                                        Format("🏷️ <b>Тэг до откачки tag:</b> <code>{release_tag}</code><br>"),
-                                    ),
-                                },
-                                selector="has_rollback"
-                            ),
+                            Format("🏷️ <b>Tag:</b> <code>{release_tag}</code><br>"),
                             Format("🔄 <b>Статус:</b> {status_text}<br>"),
                             Format("👤 <b>Инициатор:</b> <code>{initiated_by}</code><br>"),
                             Format("📅 <b>Создан:</b> <code>{created_at_formatted}</code><br>"),
