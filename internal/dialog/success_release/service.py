@@ -171,8 +171,8 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                     )
                     return
 
-                # Сохраняем доступные версии для отката
-                dialog_manager.dialog_data["available_rollback_releases"] = service_releases[0].to_dict()
+                # Сохраняем доступную версию для отката (только одну - предыдущую)
+                dialog_manager.dialog_data["available_rollback_release"] = service_releases[0].to_dict()
 
                 # Переходим к выбору версии
                 await dialog_manager.switch_to(model.SuccessfulReleasesStates.select_rollback_tag)
@@ -201,17 +201,10 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
             try:
                 dialog_manager.show_mode = ShowMode.EDIT
 
-                # Получаем доступные версии
-                available_releases = dialog_manager.dialog_data.get("available_rollback_releases", [])
+                # Получаем доступную версию для отката (только одна)
+                selected_release = dialog_manager.dialog_data.get("available_rollback_release")
 
-                # Находим выбранную версию
-                selected_release = None
-                for release in available_releases:
-                    if str(release.get("id")) == item_id:
-                        selected_release = release
-                        break
-
-                if not selected_release:
+                if not selected_release or str(selected_release.get("id")) != item_id:
                     await callback.answer("❌ Версия не найдена", show_alert=True)
                     return
 
@@ -289,7 +282,7 @@ class SuccessfulReleasesService(interface.ISuccessfulReleasesService):
                 # Очищаем данные отката
                 dialog_manager.dialog_data.pop("rollback_current_release", None)
                 dialog_manager.dialog_data.pop("rollback_target_release", None)
-                dialog_manager.dialog_data.pop("available_rollback_releases", None)
+                dialog_manager.dialog_data.pop("available_rollback_release", None)
                 await dialog_manager.show()
 
                 self.logger.info(f"Откат сервиса {service_name} на версию {target_tag} успешно инициирован")
